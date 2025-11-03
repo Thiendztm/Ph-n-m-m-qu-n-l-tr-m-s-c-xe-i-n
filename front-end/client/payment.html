@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Wallet - Thanh toán</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="./src/css/reset.css">
+    <link rel="stylesheet" href="./src/css/style.css">
+    <!-- icon -->
+     <link rel="shortcut icon" href="./src/img/tachnen.png" type="image/x-icon">
+</head>
+<body>
+    <!-- Header -->
+   <header class="header">
+        <div class="container">
+            <div class="header__top">
+                    <a href="index.html" class="logo-container">
+                        <img src="./src/img/tachnen.png" alt="Logo EV">
+                        <h1>EV</h1>
+                    </a>
+                 <i class="fa-solid fa-bars menu_icon" id="menu-icon"></i>
+                <nav class="header__nav">
+                    <ul class="nav__list">
+                        <li class="nav__item">
+                            <a class="navbar__link" href="./index.html">
+                                Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav__item">
+                            <a class="navbar__link" href="./profile.html">
+                                Hồ sơ
+                            </a>
+                        </li>
+                        <li class="nav__item">
+                            <a class="navbar__link" href="./analytics.html">
+                                Lịch Sử
+                            </a>
+                        </li>
+                        <li class="nav__item">
+                            <a class="navbar__link" href="./login.html">
+                                Đăng Nhập
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main>
+        <section class="main__section">
+            <div class="container">
+                <h2 class="section__title">Thanh toán phiên sạc</h2>
+                <p class="section__description">Hoàn tất thanh toán để bắt đầu sạc xe điện.</p>
+
+                <div class="payment-grid">
+                    <!-- Cột trái: Chi tiết phiên sạc -->
+                    <div class="payment-details card">
+                        <h3>Chi tiết phiên sạc</h3>
+                        <div class="detail-item">
+                            <span>Trạm sạc:</span>
+                            <strong id="stationName">Trạm Sạc Sài Gòn 1</strong>
+                        </div>
+                        <div class="detail-item">
+                            <span>Loại cổng:</span>
+                            <strong>CCS - 50kW</strong>
+                        </div>
+                        <div class="detail-item">
+                            <span>Năng lượng:</span>
+                            <strong>25.5 kWh</strong>
+                        </div>
+                        <div class="detail-item">
+                            <span>Giá/kWh:</span>
+                            <strong>2.000đ</strong>
+                        </div>
+                        <div class="detail-item total">
+                            <span>Tổng tiền:</span>
+                            <strong id="totalAmount">51.000đ</strong>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải: Phương thức thanh toán -->
+                    <div class="payment-methods card">
+                        <h3>Phương thức thanh toán</h3>
+                        <form id="paymentForm">
+                            <div class="method-option">
+                                <input type="radio" id="evWallet" name="method" value="ev" checked>
+                                <label for="evWallet">
+                                    <i class="fa-solid fa-wallet"></i>
+                                    Ví EV Wallet (Số dư: <span id="walletBalance">1.250.000đ</span>)
+                                </label>
+                            </div>
+                            <div class="method-option">
+                                <input type="radio" id="banking" name="method" value="bank">
+                                <label for="banking">
+                                    <i class="fa-solid fa-building-columns"></i>
+                                    Chuyển khoản ngân hàng
+                                </label>
+                            </div>
+                            <div class="method-option">
+                                <input type="radio" id="card" name="method" value="card">
+                                <label for="card">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                    Thẻ tín dụng / Ghi nợ
+                                </label>
+                            </div>
+
+                            <div class="otp-section" id="otpSection" style="display: none;">
+                                <label for="otp">Nhập mã OTP:</label>
+                                <input type="text" id="otp" placeholder="Nhập mã 6 chữ số" maxlength="6">
+                            </div>
+
+                            <button type="submit" class="btn-pay">
+                                <i class="fa-solid fa-check"></i>
+                                Thanh toán ngay
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- JS -->
+    <script src="./src/js/payment.js"></script>
+</body>
+</html>
