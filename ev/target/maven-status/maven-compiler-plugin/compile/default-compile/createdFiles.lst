@@ -5,6 +5,7 @@ uth\edu\vn\enums\ReportType.class
 uth\edu\vn\enums\PointStatus.class
 uth\edu\vn\entity\Charger.class
 uth\edu\vn\entity\ThongBao.class
+uth\edu\vn\EVApplication.class
 uth\edu\vn\entity\SuCo.class
 uth\edu\vn\entity\User.class
 uth\edu\vn\Main.class
@@ -22,11 +23,13 @@ uth\edu\vn\entity\TelemetryStatus.class
 uth\edu\vn\util\HibernateUtil.class
 uth\edu\vn\enums\NotificationStatus.class
 uth\edu\vn\enums\UserRole.class
+uth\edu\vn\ev\config\MvcConfiguration.class
 uth\edu\vn\entity\PhienSac.class
 uth\edu\vn\enums\IncidentStatus.class
 uth\edu\vn\entity\Xe.class
 uth\edu\vn\entity\HoaDon.class
 uth\edu\vn\entity\DatCho.class
+uth\edu\vn\ev\controller\HomeController.class
 uth\edu\vn\entity\ThanhToan.class
 uth\edu\vn\enums\ConnectorType.class
 uth\edu\vn\enums\SubscriptionStatus.class

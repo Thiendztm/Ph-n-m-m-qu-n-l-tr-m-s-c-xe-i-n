@@ -8,6 +8,7 @@ C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\ConnectorTy
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\PointStatus.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\PaymentMethod.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\Main.java
+C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\EVApplication.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\User.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\NotificationType.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\SubscriptionStatus.java
@@ -20,12 +21,14 @@ C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\StationStat
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\BaoCao.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\TramSac.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\Charger.java
+C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\ev\config\MvcConfiguration.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\DieuKhienTuXa.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\SuCo.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\PhienSac.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\UserRole.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\BookingStatus.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\IncidentSeverity.java
+C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\ev\controller\HomeController.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\HoaDon.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\enums\NotificationStatus.java
 C:\Users\Thien\Documents\java\java\ev\src\main\java\uth\edu\vn\entity\GoiDichVu.java

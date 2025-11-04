@@ -62,7 +62,7 @@ public class TramSac {
     public List<Charger> getAvailableChargers() {
         // Logic to filter available chargers
         return chargingPoints.stream()
-                .filter(charger -> "AVAILABLE".equals(charger.getStatus()))
+                .filter(charger -> uth.edu.vn.enums.PointStatus.AVAILABLE.equals(charger.getStatus()))
                 .collect(java.util.stream.Collectors.toList());
     }
     

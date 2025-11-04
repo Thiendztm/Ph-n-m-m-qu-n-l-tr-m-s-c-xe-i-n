@@ -64,7 +64,9 @@ public class Main {
         
         // 2. Create sample subscriptions for admin
         GoiDichVu adminSubscription = adminService.createUserSubscription(admin, "Admin Premium Plan", 500000.0);
-        System.out.println("✓ Created admin subscription");
+        if (adminSubscription != null) {
+            System.out.println("✓ Created admin subscription: " + adminSubscription.getPlanName());
+        }
         
         // 3. Create charging stations
         TramSac station1 = adminService.createChargingStation(
