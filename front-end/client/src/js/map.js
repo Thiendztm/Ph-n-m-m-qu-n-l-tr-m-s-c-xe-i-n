@@ -127,6 +127,26 @@ function initMap() {
     // Khởi tạo Autocomplete (nếu thư viện Places sẵn sàng)
     const searchInput = document.getElementById("searchInput");
     if (searchInput) {
+        // Tạo container gợi ý
+        let suggestBox = document.createElement('div');
+        suggestBox.className = 'search-suggestions';
+        searchInput.parentElement && searchInput.parentElement.appendChild(suggestBox);
+
+        const RECENT_KEY = 'ev_recent_searches';
+        function loadRecent() {
+            try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch { return []; }
+        }
+        function saveRecent(list) {
+            localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 8)));
+        }
+        function addRecent(term) {
+            if (!term) return;
+            let list = loadRecent().filter(x => x.toLowerCase() !== term.toLowerCase());
+            list.unshift(term);
+            saveRecent(list);
+        }
+        
+
         // Dùng PlaceAutocompleteElement mới nếu khả dụng, fallback sang Autocomplete cũ
         if (google.maps.places && google.maps.places.PlaceAutocompleteElement) {
             const pae = new google.maps.places.PlaceAutocompleteElement();
@@ -153,18 +173,12 @@ function initMap() {
             });
         }
 
-        // Tìm kiếm nội bộ theo tên/địa chỉ (fallback và realtime)
+        // Tìm kiếm nội bộ theo tên/địa chỉ (realtime)
         searchInput.addEventListener("input", () => {
             const q = searchInput.value.trim().toLowerCase();
-            markers.forEach(({ marker, station }) => {
-                const matches =
-                    q === "" ||
-                    station.name.toLowerCase().includes(q) ||
-                    station.address.toLowerCase().includes(q);
-                marker.setVisible(matches);
-            });
-            filterMarkers(); // áp dụng thêm bộ lọc nếu có
+            filterMarkers();
             updateStationList();
+            renderSuggestions(q);
         });
 
         // Enter để zoom đến trạm phù hợp đầu tiên
@@ -172,6 +186,7 @@ function initMap() {
             if (e.key === "Enter") {
                 e.preventDefault();
                 const q = searchInput.value.trim().toLowerCase();
+                addRecent(searchInput.value.trim());
                 // Ưu tiên các marker đang hiển thị (sau khi lọc theo text)
                 let candidates = markers.filter(({ marker }) => marker.getVisible());
                 if (candidates.length === 0 && q) {
@@ -188,7 +203,41 @@ function initMap() {
                         map.setZoom(15);
                     }
                 }
+                suggestBox.style.display = 'none';
             }
+        });
+
+        // Click chọn gợi ý
+        suggestBox.addEventListener('click', (e) => {
+            const item = e.target.closest('.sg-item');
+            if (!item) return;
+            const value = item.getAttribute('data-value') || '';
+            searchInput.value = value;
+            searchInput.dispatchEvent(new Event('input'));
+            searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        });
+
+        // Đóng khi click ra ngoài
+        document.addEventListener('click', (e) => {
+            if (!suggestBox.contains(e.target) && e.target !== searchInput) {
+                suggestBox.style.display = 'none';
+            }
+        });
+
+        // Zoom khi click các item lịch sử cứng trong index.html
+        document.querySelectorAll('.header__search-history-item a').forEach(a => {
+            a.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                const name = a.textContent.trim();
+                searchInput.value = name;
+                searchInput.dispatchEvent(new Event('input'));
+                // tìm theo tên và zoom
+                const entry = markers.find(({ station }) => station.name.toLowerCase() === name.toLowerCase());
+                if (entry && map) {
+                    map.panTo({ lat: entry.station.lat, lng: entry.station.lng });
+                    map.setZoom(15);
+                }
+            });
         });
     }
 
@@ -261,7 +310,7 @@ function updateStationList() {
                 <div class="action-row">
                     ${isAvailable 
                         ? `<button onclick="bookStation('${station.name}', '${station.id}')" class="btn-book">Đặt chỗ</button>`
-                        : `<button class="btn-busy" disabled>Đang dùng</button>`
+                        : `<button class="btn-busy" disabled>Đã đặt chỗ</button>`
                     }
                 </div>
             </div>
@@ -274,25 +323,20 @@ function updateStationList() {
 
 // Hàm lọc marker
 function filterMarkers() {
-    // Thu thập giá trị từ select thật (nếu có) hoặc từ UI tuỳ biến (.select-menu)
-    let connector = (document.getElementById("filterConnector")?.value || "").trim();
-    let status = (document.getElementById("filterStatus")?.value || "").trim();
+    // Thu thập filter từ UI tuỳ biến (data-selectedValue) hoặc select thật
+    const connectorMenu = document.querySelector('.filter-group .select-menu:nth-of-type(1)');
+    const statusMenu = document.querySelector('.filter-group .select-menu:nth-of-type(2)');
+    let connector = (connectorMenu?.dataset.selectedValue || document.getElementById("filterConnector")?.value || "").trim();
+    let status = (statusMenu?.dataset.selectedValue || document.getElementById("filterStatus")?.value || "").trim();
 
-    if (!connector && document.querySelector('.select-menu:nth-of-type(1) .select span')) {
-        const text = document.querySelector('.select-menu:nth-of-type(1) .select span').textContent.trim();
-        connector = text === 'Tất cả' ? '' : text;
-    }
-    if (!status && document.querySelector('.select-menu:nth-of-type(2) .select span')) {
-        const text = document.querySelector('.select-menu:nth-of-type(2) .select span').textContent.trim();
-        status = text === 'Trạng thái' ? '' : (text === 'Trống' ? 'available' : (text === 'Đang dùng' ? 'busy' : ''));
-    }
+    const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
 
     markers.forEach(({ marker, station }) => {
-        let show = true;
-        if (connector && station.connector !== connector) show = false;
-        if (status && station.status !== status) show = false;
-        // giữ nguyên trạng thái ẩn/hiện hiện tại do ô tìm kiếm đặt trước đó
-        marker.setVisible(show && marker.getVisible());
+        const matchesSearch = q === '' || station.name.toLowerCase().includes(q) || station.address.toLowerCase().includes(q);
+        const matchesConnector = !connector || station.connector === connector;
+        const matchesStatus = !status || station.status === status;
+        const visible = matchesSearch && matchesConnector && matchesStatus;
+        marker.setVisible(visible);
     });
 
     updateStationList();

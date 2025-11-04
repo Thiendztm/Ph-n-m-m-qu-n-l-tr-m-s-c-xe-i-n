@@ -155,6 +155,64 @@ main {
   color: var(--muted);
   font-size: 1.6rem;
 }
+/* .search-wrapper::before{
+  content: "";
+  position: absolute;
+ 
+  border-width: 13px 13px;
+  border-style: solid;
+  border-color: transparent red white transparent;
+  cursor: pointer;
+  left: 50%;
+  bottom: -10px;
+} */
+/* search history */
+.search-wrapper:focus-within .header__search-history {
+  display: block;
+}
+
+.header__search-history {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 30px;
+  width: calc(100% - -5px);
+  background: linear-gradient(180deg, rgba(10, 14, 25, .9), rgba(10, 14, 25, .6));
+  border-radius: 7px;
+  display: none;
+  overflow: hidden;
+  z-index: 1;
+
+}
+
+.header__search-history-heading {
+  margin: 6px 12px;
+  font-size: 1.4rem;
+  color: #999;
+  font-weight: 400;
+}
+
+.header__search-history-list {
+  padding-left: 0;
+  list-style: none;
+  margin: 6px 0 0;
+}
+
+.header__search-history-item {
+  height: 38px;
+  padding: 0 16px;
+}
+
+.header__search-history-item:hover {
+  background-color:var(--primary-2);
+}
+
+.header__search-history-item a {
+  text-decoration: none;
+  font-size: 1.4rem;
+  line-height: 38px;
+  color: var(--text);
+  display: block;
+}
 .filter-group {
   display: flex;
   gap: 10px;
@@ -409,15 +467,6 @@ main {
 .btn-book:hover {
   background: var(--primary-2);
   transform: scale(1.05);
-}
-.btn-busy {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 
 /* Card (giữ nguyên) */
@@ -1087,4 +1136,13 @@ canvas {
     .staff-dashboard {
         grid-template-columns: 1fr;
     }
+}
+.btn-busy {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  opacity: 0.7;
+  cursor: not-allowed;
 }
