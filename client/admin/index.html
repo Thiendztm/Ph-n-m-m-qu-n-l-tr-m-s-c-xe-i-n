@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - EV Wallet</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="../src/css/reset.css">
+    <link rel="stylesheet" href="./css/admin.css">
+    <!-- icon web -->
+    <link rel="icon" type="image/x-icon" href="../src/img/tachnen.png">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../src/img/andepzai.jpg" alt="Admin" class="admin-avatar">
+                <span class="admin-name">Welcome, Admin</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active"><a href="#"><i class="fa-solid fa-bolt"></i> Trạm sạc</a></li>
+                <li><a href="#"><i class="fa-solid fa-wrench"></i> Thiết bị</a></li>
+                <li><a href="#"><i class="fa-solid fa-users"></i> Người dùng</a></li>
+                <li><a href="#"><i class="fa-solid fa-wallet"></i> Tài khoản</a></li>
+                <li><a href="#"><i class="fa-solid fa-chart-bar"></i> Báo cáo</a></li>
+                <li><a href="#"><i class="fa-solid fa-money-bill-trend-up"></i> Doanh thu</a></li>
+                <li><a href="#"><i class="fa-solid fa-headset"></i> Hỗ trợ</a></li>
+                <li><a href="#"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Nội dung sẽ được render bởi JS -->
+        </main>
+    </div>
+
+    <!-- Scripts (Module) -->
+    <script type="module" src="./js/data.js"></script>
+    <script type="module" src="./js/utils.js"></script>
+    <script type="module" src="./js/stations.js"></script>
+    <script type="module" src="./js/users.js"></script>
+    <script type="module" src="./js/accounts.js"></script>
+    <script type="module" src="./js/reports.js"></script>
+    <script type="module" src="./js/revenue.js"></script>
+    <script type="module" src="./js/support.js"></script>
+    <script type="module" src="./js/navigation.js"></script>
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>
