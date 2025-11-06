@@ -1,6 +1,7 @@
 package uth.edu.vn.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +22,8 @@ import java.util.List;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     
+    private static final Logger logger = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
+    
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -39,16 +42,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      * Tìm user trong database bằng email
      */
     private User findUserByEmail(String email) {
-        org.hibernate.Session session = HibernateUtil.getSessionFactory().openSession();
-        try {
+        try (org.hibernate.Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.createQuery("FROM User WHERE email = :email", User.class)
                     .setParameter("email", email)
                     .uniqueResult();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error finding user by email: " + email, e);
             return null;
-        } finally {
-            session.close();
         }
     }
     
