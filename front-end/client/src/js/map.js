@@ -108,10 +108,10 @@ function initMap() {
                         <p><strong>Giá:</strong> ${station.price}đ/kWh</p>
                         <p><strong>Địa chỉ:</strong> ${station.address}</p>
                     </div>
-                    <div class="action-row">
+                    <div class=\"action-row\">
                         ${station.status === 'available' 
-                            ? `<button onclick="bookStation('${station.name}','${station.id}')">Đặt chỗ</button>`
-                            : `<button disabled>Đang dùng</button>`}
+                            ? `<button onclick=\"startBooking('${station.id}')\">Đặt chỗ</button>`
+                            : `<button disabled>Đã đặt chỗ</button>`}
                     </div>
                 </div>
             `;
@@ -123,6 +123,8 @@ function initMap() {
     });
 
     updateStationList();
+    // Áp dụng kết quả thanh toán (nếu có) sau khi đã có marker
+    applyBookingFromStorage();
 
     // Khởi tạo Autocomplete (nếu thư viện Places sẵn sàng)
     const searchInput = document.getElementById("searchInput");
@@ -309,7 +311,7 @@ function updateStationList() {
                 <p class="distance">${station.distance}</p>
                 <div class="action-row">
                     ${isAvailable 
-                        ? `<button onclick="bookStation('${station.name}', '${station.id}')" class="btn-book">Đặt chỗ</button>`
+                        ? `<button data-id="${station.id}" class="btn-book">Đặt chỗ</button>`
                         : `<button class="btn-busy" disabled>Đã đặt chỗ</button>`
                     }
                 </div>
@@ -319,6 +321,11 @@ function updateStationList() {
 
     listContent.innerHTML = html;
     document.getElementById("stationCount").textContent = `${visibleStations.length} trạm`;
+
+    // Gán click cho các nút đặt chỗ mới render
+    document.querySelectorAll('.btn-book[data-id]').forEach(btn => {
+        btn.addEventListener('click', () => startBooking(btn.getAttribute('data-id')));
+    });
 }
 
 // Hàm lọc marker
@@ -371,4 +378,40 @@ function bookStation(name, id) {
 // Đảm bảo callback toàn cục cho script Google Maps
 if (typeof window !== 'undefined') {
     window.initMap = initMap;
+}
+
+// Bắt đầu quy trình thanh toán cho station id
+function startBooking(stationId) {
+    if (!stationId) return;
+    localStorage.setItem('bookingStationId', stationId);
+    localStorage.setItem('bookingStatus', 'pending');
+    window.location.href = 'payment.html';
+}
+
+// Hoàn tất đặt chỗ nếu trang quay lại từ payment (gọi sau khi markers đã sẵn sàng)
+function applyBookingFromStorage(){
+    try {
+        const status = localStorage.getItem('bookingStatus');
+        const id = localStorage.getItem('bookingStationId');
+        if (!status) return;
+        if (status === 'success' && id) {
+            const entry = markers.find(({ station }) => station.id === id);
+            if (entry && entry.station.status !== 'busy') {
+                entry.station.capNhatTrangThai('busy');
+                if (entry.marker instanceof google.maps.Marker) {
+                    entry.marker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
+                }
+            }
+        }
+        // Dọn cờ và cập nhật UI
+        localStorage.removeItem('bookingStatus');
+        localStorage.removeItem('bookingStationId');
+        updateStationList();
+        filterMarkers();
+    } catch (_) {}
+}
+
+// Expose booking function for inline handlers
+if (typeof window !== 'undefined') {
+    window.startBooking = startBooking;
 }
