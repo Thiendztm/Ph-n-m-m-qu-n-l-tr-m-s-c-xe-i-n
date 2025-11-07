@@ -1,4 +1,4 @@
-// ---------- DOM ----------
+
 const inpUserName = document.querySelector("#username");
 const inpEmail = document.querySelector("#email");
 const inpPwd = document.querySelector("#password");
