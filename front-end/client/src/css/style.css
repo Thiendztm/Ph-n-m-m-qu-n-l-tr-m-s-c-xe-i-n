@@ -899,6 +899,7 @@ canvas {
   justify-content: space-between;
   font-size: 1.6rem;
   margin-bottom: 12px;
+  padding-top: 10px;
   color: var(--muted);
 }
 .detail-item strong {
@@ -909,9 +910,8 @@ canvas {
   font-size: 1.8rem;
   font-weight: 700;
   color: var(--accent);
-  padding-top: 12px;
   border-top: 1px solid #2e406a;
-  margin-top: 16px;
+  padding-top: 20px;
 }
 .method-option {
   display: flex;
@@ -924,10 +924,7 @@ canvas {
   cursor: pointer;
   transition: all 0.3s ease;
 }
-.method-option:hover {
-  background: #1a2d4e;
-  transform: translateX(4px);
-}
+
 .method-option input[type="radio"] {
   accent-color: var(--accent);
 }
@@ -960,28 +957,7 @@ canvas {
   text-align: center;
   letter-spacing: 8px;
 }
-.btn-pay {
-  width: 100%;
-  padding: 14px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 16px;
-  cursor: pointer;
-  font-size: 1.7rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
-  transition: all 0.3s ease;
-}
-.btn-pay:hover {
-  background: var(--primary-2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(56, 142, 60, 0.4);
-}
+
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -1107,7 +1083,7 @@ canvas {
     color: var(--accent);
 }
 .btn-pay, .btn-report {
-    width: 100%;
+    width: 50%;
     padding: 12px;
     border: none;
     border-radius: 12px;
@@ -1153,9 +1129,151 @@ footer {
    border-top: 1px solid #2e406a;
    text-align: center;
 }
-.footer h2 {
+footer h2 {
     font-size: 1.8rem;
     color:#F5F5F0;
     margin-bottom: 20px;
     font-style: italic;
+}
+/* option cards */
+.options {
+  padding-top: 30px;
+}
+.option-card {
+  padding: 30px;
+}
+.option-card__title {
+  font-size: 3.2rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+}
+.option-card__content {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); 
+  column-gap: 30px;
+}
+.option-card__item {
+  padding: 20px;
+  background-color: #323946;
+  border-radius: 5px;
+}
+.option-card__item:hover{
+  cursor: pointer;
+  box-shadow: #0b0f19;
+}
+.option-item__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.option-item__header h3 {
+  font-size: 2rem;
+  color:var(--text);
+  font-weight: 600;
+
+}
+
+.item__tag {
+  font-size: 1.2rem;
+  padding:6px 10px ;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+.item__tag--popular {
+  background: #dbeafe;
+  color:#2563eb ;
+}
+.item__tag--saving{
+ background: #dcfce7;
+ color: #16a34a;
+}
+.item__tag--offer{
+  background:#fef3c7; 
+  color:#92400e;
+}
+.option-card__item h4 {
+  margin-top: 36px;
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1.2;
+  letter-spacing: 1px;
+}
+.option-card__item p {
+  margin-top: 25px;
+  font-size:2.5rem;
+  font-weight: 700;
+}
+.option-card__item p span {
+  font-size: 2.5rem;
+  margin-left: 7px;
+  color: crimson;
+
+}
+.option-card__item ul {
+  margin: 25px 0px;
+  display:block;
+  height: 130px;
+}
+.option-card__item ul li {
+  margin-top: 15px;
+  line-height: 1.8;
+  letter-spacing: 1px;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+.option-card__item ul li i {
+ color: white;
+ background-color: green;
+ padding: 2px;
+ border-radius: 4px;
+ margin-right: 5px;
+ font-size: 1.6rem;
+}
+/* btn */
+.btn-option{
+  display:inline-block;
+  padding:12px 14px;
+  border-radius:12px;
+  font-weight:700;
+  border:0;
+  cursor:pointer;
+  text-align:center;
+  transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+  user-select:none;
+}
+.btn:active{ transform: translateY(1px); }
+
+.btn-blue{
+  background:#2563eb;
+  color:white;
+}
+.btn-blue:hover{ background:#1e40af; }
+
+.btn-green{
+  background:#16a34a;
+  color:white;
+}
+.btn-green:hover{ background:#15803d; }
+
+.btn-yellow{
+  background:#f59e0b;
+  color:white;
+}
+.btn-yellow:hover{ background:#c27805; }
+.hidden {
+  display: none !important;
+}
+/* Payment buttons */
+.payment-buttons {
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #2e406a;
+  padding-top: 20px;
+}
+.box__detail-items, .box__method-options {
+  height: 200px;
 }

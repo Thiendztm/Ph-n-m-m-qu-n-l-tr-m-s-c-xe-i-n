@@ -59,27 +59,127 @@
         <section class="main__section">
             <div class="container">
                 <h2 class="section__title">Thanh toán phiên sạc</h2>
-                <p class="section__description">Hoàn tất thanh toán để bắt đầu sạc xe điện.</p>
+             <!-- Các gói chọn cho khách hàng  -->
+             
+                <div class="options">
+                <div class="option-card">
+                       <h2 class="option-card__title">Chọn gói </h2>
+                     <div class="option-card__content">
+                        <!-- item1 -->
+                        <div class="option-card__item">
+                            <div class="option-item__header">
+                                <h3>Gói Linh Hoạt</h3>
+                                 <span  class="item__tag item__tag--popular">Phổ biến</span>
+                            </div>
+                                 <h4>Tính theo số lượng sạc thực tế (kWh/phút)</h4>
+                               
+                                  <p>Giá:<span>Tùy mức sử dụng</span></p>
+                                <ul>
+                                    <li>
+                                     <i class="fa-solid fa-check"></i>
+                                         Chỉ trả tiền cho lượng điện đã sạc
+                                    </li>
+                                    <li>
+                                        <i class="fa-solid fa-check"></i>
+                                        Không giới hạn thời gian
+                                    </li>
+                                    <li>
+                                        <i class="fa-solid fa-check"></i>
+                                        Phù hợp: Sử dụng không thường xuyên
+                                    </li>
+                                    <!-- <li>
+                                        <i class="fa-solid fa-check"></i>
+                                    </li> -->
+                                </ul>
+                                
+                     <button class="btn-option btn-blue " type="button">Chọn gói này</button>
+                        </div>
+                        <!-- item2 -->
+                        <div class="option-card__item">
+                            <div class="option-item__header">
+                                <h3>Gói Một Lần </h3>
+                                 <span class="item__tag item__tag--saving"> Tiết kiệm</span>
+                            </div>
+                            <h4>
+                                 1 lần sạc cố định, thời gian: 2 giờ
+                                </h4>
+                                <p>Giá:<span class="option-price">60.000đ / lần</span></p>
+                                <ul>
+                                    <li>
+                                     <i class="fa-solid fa-check"></i>
+                                     Giá cố định, không phụ thuộc kWh
+                                    </li>
+                                    <li>
+                                        <i class="fa-solid fa-check"></i>
+                                        Sạc đầy hoặc đến hết thời gian
+                                    </li>
+                                    <li>
+                                        <i class="fa-solid fa-check"></i>
+                                        Phù hợp: Chuyến đi ngắn, cần sạc nhanh
+                                    </li>
+                                    <!-- <li>
+                                        <i class="fa-solid fa-check"></i>
+                                    </li> -->
+                                </ul>
+                                
+                      <button class="btn-option btn-green " type="button">Chọn gói này</button>
+                        </div>
+                        <!-- item3 -->
+                        <div class="option-card__item">
+                            <div class="option-item__header">
+                                <h3>Gói Tháng</h3>
+                                 <span class="item__tag item__tag--offer">Ưu đãi</span>
+                            </div>
+                            
+                                <h4>35 lượt sạc / tháng</h4>
+                                <p>Giá:<span class="option-price">1.000.000đ / tháng</span></p>
+                                <ul>
+                                    <li>
+                                     <i class="fa-solid fa-check"></i>
+                                     Không giới hạn kWh mỗi lượt
+                                    </li>
+                                    <li>
+                                        <i class="fa-solid fa-check"></i>
+                                        Tiết kiệm đến 50% so với gói lẻ
+                                    </li>
+                                    <li>
+                                        <i class="fa-solid fa-check"></i>
+                                        Phù hợp: Sử dụng thường xuyên, đi làm hàng ngày
+                                    </li>
+                                    <!-- <li>
+                                        <i class="fa-solid fa-check"></i>
+                                    </li> -->
+                                </ul>
+                                
+              <button class="btn-option btn-yellow mt-auto" type="button">Chọn gói này</button>
+                        </div>
+                     </div>
+                
+              </div>
 
-                <div class="payment-grid">
-                    <!-- Cột trái: Chi tiết phiên sạc -->
-                    <div class="payment-details card">
+                
+            </div>
+
+                 <div class="payment-grid">
+                    <div id="stationInfo" class="payment-details card">
                         <h3>Chi tiết phiên sạc</h3>
-                        <div class="detail-item">
+                        <div class="box__detail-items">
+                         <div class="detail-item">
                             <span>Trạm sạc:</span>
-                            <strong id="stationName">Trạm Sạc Sài Gòn 1</strong>
+                            <strong id="stationName">Trạm Sạc Sài Gòn 3</strong>
                         </div>
                         <div class="detail-item">
                             <span>Loại cổng:</span>
-                            <strong>CCS - 50kW</strong>
+                            <strong>CHAdeMO - 100kW </strong>
                         </div>
                         <div class="detail-item">
                             <span>Năng lượng:</span>
                             <strong>0kWh</strong>
                         </div>
-                        <div class="detail-item">
+                        <div class="detail-item detail-item-price">
                             <span>Giá/kWh:</span>
-                            <strong>0đ</strong>
+                            <strong>2500đ/kWh</strong>
+                        </div>
                         </div>
                         <div class="detail-item total">
                             <span>Tổng tiền:</span>
@@ -87,11 +187,13 @@
                         </div>
                     </div>
 
-                    <!-- Cột phải: Phương thức thanh toán -->
+                   
                     <div class="payment-methods card">
                         <h3>Phương thức thanh toán</h3>
                         <form id="paymentForm">
-                            <div class="method-option">
+                            <div class="box__method-options">
+
+                                <div class="method-option">
                                 <input type="radio" id="evWallet" name="method" value="ev" checked>
                                 <label for="evWallet">
                                     <i class="fa-solid fa-wallet"></i>
@@ -112,16 +214,23 @@
                                     Thẻ tín dụng / Ghi nợ
                                 </label>
                             </div>
+                            </div>
 
                             <div class="otp-section" id="otpSection" style="display: none;">
                                 <label for="otp">Nhập mã OTP:</label>
                                 <input type="text" id="otp" placeholder="Nhập mã 6 chữ số" maxlength="6">
                             </div>
 
-                            <button type="submit" class="btn-pay">
+                            <div class="payment-buttons">
+                                <button type="submit" class="btn-pay">
                                 <i class="fa-solid fa-check"></i>
                                 Thanh toán ngay
                             </button>
+                            <button type="button" class="btn-report">
+                                <i class="fa-solid fa-xmark"></i>
+                                Hủy bỏ  
+                            </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -130,10 +239,7 @@
     </main>
   <footer>
         <div class="container">
-            <section class="footer">
-              <h2>&copy; Copyright © 2025 EV Wallet. All rights reserved.</h2>
-                
-            </section>
+              <h2>&copy; Copyright © 2025 EV Wallet. All rights reserved.</h2>   
         </div>
     </footer>
     <!-- JS -->

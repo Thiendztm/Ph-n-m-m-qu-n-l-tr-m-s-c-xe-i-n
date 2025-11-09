@@ -69,7 +69,7 @@ function initMap() {
     });
 
     const tramSaiGon1 = new tram("Trạm sạc Bình Thạnh 1", 10.8231, 106.6297, "CCS", "busy", 50, 3500, "123 Nguyễn Văn Cừ, Bình Thạnh, TP.HCM", "1.2km");
-    const tramSaiGon2 = new tram("Trạm sạc Quận 1", 10.7769, 106.7009, "AC", "busy", 75, 4000, "789 Nguyễn Huệ, Q.1, TP.HCM", "2.1km");
+    const tramSaiGon2 = new tram("Trạm sạc Quận 1", 10.7769, 106.7009, "AC", "available", 75, 4000, "789 Nguyễn Huệ, Q.1, TP.HCM", "2.1km");
     const tramSaiGon3 = new tram("Trạm Sạc Sài Gòn 3", 10.770, 106.690, "CHAdeMO", "available", 100, 2500, "3 Pasteur, Q.1, TP.HCM", "0.8km");
     // const tramSaiGon4 = new tram("Trạm Sạc Sài Gòn 4", 10.780, 106.695, "CCS", "busy", 75, 2200, "4 Lê Duẩn, Q.1, TP.HCM", "1.5km");
     // const tramSaiGon5 = new tram("Trạm Sạc Sài Gòn 5", 10.775, 106.710, "AC", "available", 40, 1800, "5 Tôn Đức Thắng, Q.1, TP.HCM", "2.0km");
