@@ -380,38 +380,54 @@ if (typeof window !== 'undefined') {
     window.initMap = initMap;
 }
 
-// Bắt đầu quy trình thanh toán cho station id
+// Bắt đầu đặt chỗ → chuyển sang payment.html
 function startBooking(stationId) {
-    if (!stationId) return;
-    localStorage.setItem('bookingStationId', stationId);
+    const entry = markers.find(m => m.station.id === stationId);
+    if (!entry || entry.station.status === 'busy') {
+        alert("Trạm đang bận hoặc không tồn tại!");
+        return;
+    }
+
+    const s = entry.station;
+    const bookingInfo = {
+        id: s.id,
+        name: s.name,
+        address: s.address,
+        connector: s.connector,
+        power: s.power,
+        price: s.price,
+        distance: s.distance,
+        connectorDisplay: `${s.connector} - ${s.power}kW`,
+        priceDisplay: `${s.price.toLocaleString()}đ/kWh`
+    };
+
+    localStorage.setItem('bookingStation', JSON.stringify(bookingInfo));
     localStorage.setItem('bookingStatus', 'pending');
     window.location.href = 'payment.html';
 }
 
-// Hoàn tất đặt chỗ nếu trang quay lại từ payment (gọi sau khi markers đã sẵn sàng)
-function applyBookingFromStorage(){
-    try {
-        const status = localStorage.getItem('bookingStatus');
-        const id = localStorage.getItem('bookingStationId');
-        if (!status) return;
-        if (status === 'success' && id) {
-            const entry = markers.find(({ station }) => station.id === id);
-            if (entry && entry.station.status !== 'busy') {
+// Áp dụng đặt chỗ thành công khi quay lại
+function applyBookingFromStorage() {
+    const status = localStorage.getItem('bookingStatus');
+    const saved = localStorage.getItem('bookingStation');
+    if (status === 'success' && saved) {
+        try {
+            const station = JSON.parse(saved);
+            const entry = markers.find(m => m.station.id === station.id);
+            if (entry && entry.station.status === 'available') {
                 entry.station.capNhatTrangThai('busy');
-                if (entry.marker instanceof google.maps.Marker) {
-                    entry.marker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png');
+                if (entry.marker.setIcon) {
+                    entry.marker.setIcon("http://maps.google.com/mapfiles/ms/icons/red-dot.png");
                 }
+                updateStationList();
             }
-        }
-        // Dọn cờ và cập nhật UI
-        localStorage.removeItem('bookingStatus');
-        localStorage.removeItem('bookingStationId');
-        updateStationList();
-        filterMarkers();
-    } catch (_) {}
+        } catch (e) { console.error(e); }
+    }
+    // Dọn dẹp
+    localStorage.removeItem('bookingStatus');
+    localStorage.removeItem('bookingStation');
 }
 
-// Expose booking function for inline handlers
-if (typeof window !== 'undefined') {
-    window.startBooking = startBooking;
-}
+// Expose global
+window.initMap = initMap;
+window.startBooking = startBooking;
