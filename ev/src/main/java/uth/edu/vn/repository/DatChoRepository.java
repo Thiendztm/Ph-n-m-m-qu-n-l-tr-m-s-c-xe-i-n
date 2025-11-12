@@ -20,11 +20,11 @@ public interface DatChoRepository extends JpaRepository<DatCho, Long> {
     @Query("SELECT dc FROM DatCho dc WHERE dc.user.id = :userId AND dc.status = :status")
     List<DatCho> findByUserAndStatus(@Param("userId") Long userId, @Param("status") BookingStatus status);
     
-    @Query("SELECT dc FROM DatCho dc WHERE dc.chargingPoint.id = :chargerId AND dc.bookingTime BETWEEN :startTime AND :endTime AND dc.status != 'CANCELLED'")
+    @Query("SELECT dc FROM DatCho dc WHERE dc.chargingPoint.id = :chargerId AND dc.startTime BETWEEN :startTime AND :endTime AND dc.status != 'CANCELLED'")
     List<DatCho> findConflictingBookings(@Param("chargerId") Long chargerId, 
                                          @Param("startTime") LocalDateTime startTime, 
                                          @Param("endTime") LocalDateTime endTime);
     
-    @Query("SELECT dc FROM DatCho dc WHERE dc.bookingTime < :expiryTime AND dc.status = 'PENDING'")
+    @Query("SELECT dc FROM DatCho dc WHERE dc.createdAt < :expiryTime AND dc.status = 'PENDING'")
     List<DatCho> findExpiredBookings(@Param("expiryTime") LocalDateTime expiryTime);
 }

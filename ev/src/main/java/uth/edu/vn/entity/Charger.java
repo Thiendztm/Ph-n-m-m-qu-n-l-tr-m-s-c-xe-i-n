@@ -13,16 +13,16 @@ public class Charger {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long pointId;
     
-    @Column(nullable = false)
+    @Column(nullable = true) // Tạm thời cho phép null để không bị lỗi migration
     private String pointName;
     
     @Enumerated(EnumType.STRING)
     private ConnectorType connectorType;
     
-    @Column(nullable = false)
+    @Column(nullable = true) // Tạm thời cho phép null để không bị lỗi migration
     private Double powerCapacity; // kW
     
-    @Column(nullable = false)
+    @Column(nullable = true) // Tạm thời cho phép null để không bị lỗi migration
     private Double pricePerKwh; // Price per kWh
     
     @Enumerated(EnumType.STRING)

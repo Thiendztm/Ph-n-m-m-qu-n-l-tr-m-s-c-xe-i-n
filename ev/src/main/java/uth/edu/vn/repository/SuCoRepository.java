@@ -14,7 +14,7 @@ public interface SuCoRepository extends JpaRepository<SuCo, Long> {
     
     List<SuCo> findByStatus(IncidentStatus status);
     
-    List<SuCo> findByChargingPointId(Long chargerId);
+    List<SuCo> findByChargingPointPointId(Long chargerId);
     
     @Query("SELECT sc FROM SuCo sc WHERE sc.reportedBy.id = :userId ORDER BY sc.reportedAt DESC")
     List<SuCo> findByReportedByOrderByReportedAtDesc(@Param("userId") Long userId);
