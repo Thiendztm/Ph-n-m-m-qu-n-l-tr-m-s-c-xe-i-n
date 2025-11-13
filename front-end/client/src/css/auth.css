@@ -1,5 +1,5 @@
 body{
-	background-image:url('../img/nendk-dn.jpg');
+	background: linear-gradient(135deg, #0F172A, #1E293B);
 	background-size:cover;
 	background-position: center;
 	background-repeat:  repeat;
