@@ -11,7 +11,7 @@
                       value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
 
             <property name="javax.persistence.jdbc.url" 
-                      value="jdbc:sqlserver://localhost:1433;DatabaseName=StudentManagement;encrypt=true;trustServerCertificate=true;" />
+                      value="jdbc:sqlserver://localhost:1433;DatabaseName=EVDATABASE;encrypt=true;trustServerCertificate=true;" />
 
             <property name="javax.persistence.jdbc.user" 
                       value="sa" />
