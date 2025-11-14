@@ -30,4 +30,9 @@ public interface ChargerRepository extends JpaRepository<Charger, Long> {
      * Count charging points by status (for AdminService system overview)
      */
     Long countByStatus(PointStatus status);
+    
+    /**
+     * Find charging points by station and status (for EVDriverService)
+     */
+    List<Charger> findByChargingStationIdAndStatus(Long stationId, PointStatus status);
 }
