@@ -5,37 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - EV Wallet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../src/css/style.css">
-    <link rel="stylesheet" href="./css/admin.css">
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../src/css/reset.css">
+    <link rel="stylesheet" href="./css/login__admin.css">
 </head>
 <body>
-    <div class="auth-wrapper">
-        <div class="auth-container">
-            <div class="auth-card shadow-lg">
-                <h2 class="section__heading">Admin Login</h2>
-                <form id="adminLoginForm">
-                    <div class="form-group mb-4">
-                        <div class="input-wrapper">
-                            <span class="icon"><i class="fa-solid fa-user-shield"></i></span>
-                            <input type="text" class="form-control" id="adminUsername" placeholder="Tên đăng nhập">
-                        </div>
-                    </div>
-                    <div class="form-group mb-4">
-                        <div class="input-wrapper">
-                            <span class="icon"><i class="fa-solid fa-lock"></i></span>
-                            <input type="password" class="form-control" id="adminPassword" placeholder="Mật khẩu">
-                            <i id="togglePassword" class="eye fa-solid fa-eye-slash"></i>
-                        </div>
-                    </div>
-                    <div id="loginMessage" class="message"></div>
-                    <button type="submit" class="btn btn-primary btn-auth">
-                        <i class="fa-solid fa-sign-in-alt"></i> Đăng nhập
-                    </button>
-                </form>
-            </div>
-        </div>
+    <div class="login-wrapper">
+    <!-- Left: Form -->
+    <div class="login-form">
+      <div class="form-container">
+        <h2 class="title">Đăng nhập<h2>
+        <form id="adminLoginForm">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="adminEmail" placeholder="example@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="adminPassword" placeholder="Password" required>
+          </div>
+            <button type="submit" class="login-button btn">Đăng nhập</button>
+        </form>
+      </div>
     </div>
-    <script src="./js/admin.js"></script>
+
+    <!-- Right: Logo -->
+    <div class="login-brand">
+      <div class="brand-content">
+        <img src="../src/img/tachnen.png" alt="EV Wallet Logo" class="logo">
+        <h1>EV Wallet</h1>
+      </div>
+    </div>
+  </div>
+    <script src="./js/login__admin.js"></script>
 </body>
 </html>
