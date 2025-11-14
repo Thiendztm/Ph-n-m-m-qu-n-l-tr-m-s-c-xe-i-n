@@ -54,12 +54,19 @@ public class Main {
             admin = driverService.registerDriver("admin@evms.com", "admin123", "System Admin", "0123456789");
             if (admin != null) {
                 admin.setRole(UserRole.ADMIN); // Change role to admin after creation
-                System.out.println("✓ Created admin account: " + admin.getEmail());
+                admin = driverService.saveUser(admin); // IMPORTANT: Save the updated role!
+                System.out.println("✓ Created admin account: " + admin.getEmail() + " with role: " + admin.getRole());
             }
         } catch (Exception e) {
             System.out.println("ℹ Admin user already exists, skipping creation");
             // Try to find existing admin user
             admin = driverService.findUserByEmail("admin@evms.com");
+            if (admin != null && admin.getRole() != UserRole.ADMIN) {
+                // Update role if needed
+                admin.setRole(UserRole.ADMIN);
+                admin = driverService.saveUser(admin);
+                System.out.println("✓ Updated admin role for: " + admin.getEmail());
+            }
         }
         
         // 2. Create sample subscriptions for admin

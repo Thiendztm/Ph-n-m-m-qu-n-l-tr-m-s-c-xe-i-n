@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập Nhân viên - EV Charging Station</title>
+    <link rel="stylesheet" href="../src/css/reset.css">
+    <link rel="stylesheet" href="../src/css/auth.css">
+    <link rel="stylesheet" href="css/staff.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="logo">👨‍💼</div>
+                <h1>Đăng nhập Nhân viên</h1>
+                <p>Truy cập bảng điều khiển nhân viên trạm sạc</p>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="staff@example.com"
+                        required 
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="••••••••"
+                        required 
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember" id="remember">
+                        <span>Ghi nhớ đăng nhập</span>
+                    </label>
+                    <a href="#" class="forgot-password">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" class="btn-primary" id="loginBtn">
+                    Đăng nhập
+                </button>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+            </form>
+
+            <div class="auth-footer">
+                <a href="../role-selection.html" class="back-link">← Quay lại chọn loại tài khoản</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import API client
+        import { api, setTokens } from '../admin/js/api-client.js';
+
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMessage = document.getElementById('errorMessage');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Show loading
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Đang đăng nhập...';
+            errorMessage.style.display = 'none';
+
+            try {
+                const response = await api.post('/auth/login', {
+                    email,
+                    password
+                });
+
+                // Check if user has CS_STAFF role
+                if (response.role === 'CS_STAFF' || response.role === 'ADMIN') {
+                    // Save tokens
+                    setTokens(response.accessToken, response.refreshToken);
+                    localStorage.setItem('userRole', response.role);
+                    localStorage.setItem('userEmail', response.email);
+
+                    // Redirect to staff dashboard
+                    window.location.href = 'index.html';
+                } else {
+                    // Not authorized
+                    throw new Error('Bạn không có quyền truy cập trang này. Vui lòng sử dụng tài khoản nhân viên.');
+                }
+
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.textContent = error.message || 'Email hoặc mật khẩu không đúng';
+                errorMessage.style.display = 'block';
+                
+                // Reset button
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Đăng nhập';
+            }
+        });
+    </script>
+</body>
+</html>

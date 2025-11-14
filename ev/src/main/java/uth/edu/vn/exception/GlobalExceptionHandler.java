@@ -1,5 +1,7 @@
 package uth.edu.vn.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -19,6 +21,8 @@ import java.util.Map;
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     
     /**
      * Handle Resource Not Found Exception
@@ -129,7 +133,7 @@ public class GlobalExceptionHandler {
         System.err.println("Exception type: " + ex.getClass().getName());
         System.err.println("Message: " + ex.getMessage());
         System.err.println("Request: " + request.getDescription(false));
-        ex.printStackTrace();
+        logger.error("Unhandled exception", ex);
         
         ErrorResponse errorResponse = new ErrorResponse(
             LocalDateTime.now(),
@@ -146,11 +150,11 @@ public class GlobalExceptionHandler {
      * Error Response DTO
      */
     public static class ErrorResponse {
-        private LocalDateTime timestamp;
-        private int status;
-        private String error;
-        private String message;
-        private String path;
+        private final LocalDateTime timestamp;
+        private final int status;
+        private final String error;
+        private final String message;
+        private final String path;
         
         public ErrorResponse(LocalDateTime timestamp, int status, String error, String message, String path) {
             this.timestamp = timestamp;

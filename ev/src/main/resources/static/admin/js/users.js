@@ -1,5 +1,6 @@
-import { state } from './data.js';
+import { state, fetchUsers } from './data.js';
 import { createModal, closeModal, showNotification } from './utils.js';
+import { api } from './api-client.js';
 
 export function renderUsersPage() {
   const main = document.querySelector('.main-content');
@@ -29,27 +30,38 @@ export function renderUsersPage() {
 export function renderUsersTable() {
   const tbody = document.getElementById('usersTableBody');
   if (!tbody) return;
-  tbody.innerHTML = '';
-  state.users.forEach(u => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${u.id}</td>
-      <td>${u.name}</td>
-      <td>${u.email}</td>
-      <td>${u.phone}</td>
-      <td>${u.vehicleType || '--'}</td>
-      <td>${u.vehicleId || '--'}</td>
-      <td><span class="status-badge ${u.status}">${u.status === 'active' ? 'Hoạt động' : 'Vô hiệu'}</span></td>
-      <td>${u.joinDate}</td>
-      <td>${u.totalCharges}</td>
-      <td>${u.totalSpent.toLocaleString()}đ</td>
-      <td>
-        <button class="btn-icon" onclick="editUser('${u.id}')"><i class="fa-solid fa-edit"></i></button>
-        <button class="btn-icon danger" onclick="deleteUser('${u.id}')"><i class="fa-solid fa-trash"></i></button>
-        <button class="btn-icon" onclick="toggleUserStatus('${u.id}')"><i class="fa-solid fa-toggle-${u.status === 'active' ? 'on' : 'off'}"></i></button>
-      </td>
-    `;
-    tbody.appendChild(row);
+  tbody.innerHTML = '<tr><td colspan="11">Đang tải...</td></tr>';
+  
+  // Fetch fresh data from API
+  fetchUsers().then(() => {
+    tbody.innerHTML = '';
+    if (state.users.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11">Không có người dùng nào</td></tr>';
+      return;
+    }
+    state.users.forEach(u => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${u.id}</td>
+        <td>${u.name}</td>
+        <td>${u.email}</td>
+        <td>${u.phone}</td>
+        <td>${u.vehicleType || '--'}</td>
+        <td>${u.vehicleId || '--'}</td>
+        <td><span class="status-badge ${u.status}">${u.status === 'active' ? 'Hoạt động' : 'Vô hiệu'}</span></td>
+        <td>${u.joinDate}</td>
+        <td>${u.totalCharges}</td>
+        <td>${u.totalSpent.toLocaleString()}đ</td>
+        <td>
+          <button class="btn-icon" onclick="editUser('${u.id}')"><i class="fa-solid fa-edit"></i></button>
+          <button class="btn-icon danger" onclick="deleteUser('${u.id}')"><i class="fa-solid fa-trash"></i></button>
+          <button class="btn-icon" onclick="toggleUserStatus('${u.id}')"><i class="fa-solid fa-toggle-${u.status === 'active' ? 'on' : 'off'}"></i></button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }).catch(error => {
+    tbody.innerHTML = `<tr><td colspan="11" style="color: red;">Lỗi: ${error.message}</td></tr>`;
   });
 }
 
@@ -85,21 +97,22 @@ function addUser() {
   const form = document.getElementById('userForm');
   const d = new FormData(form);
   const newUser = {
-    id: `U${String(state.users.length + 1).padStart(3, '0')}`,
-    name: d.get('name'),
     email: d.get('email'),
-    phone: d.get('phone'),
-    vehicleId: d.get('vehicleId') || null,
-    vehicleType: d.get('vehicleType') || null,
-    status: 'active',
-    joinDate: new Date().toISOString().split('T')[0],
-    totalCharges: 0,
-    totalSpent: 0
+    password: 'DefaultPassword123!', // TODO: Generate or let user input
+    fullName: d.get('name'),
+    phoneNumber: d.get('phone'),
+    role: 'EV_DRIVER'
   };
-  state.users.push(newUser);
-  renderUsersTable();
-  closeModal();
-  showNotification('Thêm thành công!', 'success');
+  
+  api.post('/auth/register', newUser)
+    .then(() => {
+      renderUsersTable();
+      closeModal();
+      showNotification('Thêm thành công!', 'success');
+    })
+    .catch(error => {
+      showNotification('Lỗi: ' + error.message, 'error');
+    });
 }
 
 window.editUser = editUser;
@@ -123,30 +136,46 @@ window.updateUser = updateUser;
 function updateUser(id) {
   const form = document.getElementById('editUserForm');
   const d = new FormData(form);
-  const idx = state.users.findIndex(x => x.id === id);
-  if (idx !== -1) {
-    state.users[idx] = { ...state.users[idx], name: d.get('name'), email: d.get('email'), phone: d.get('phone') };
-    renderUsersTable();
-    closeModal();
-    showNotification('Cập nhật thành công!', 'success');
-  }
+  const updates = {
+    fullName: d.get('name'),
+    phoneNumber: d.get('phone')
+  };
+  
+  // Note: Backend may not have user update endpoint, using admin endpoint
+  api.put(`/admin/users/${id}`, updates)
+    .then(() => {
+      renderUsersTable();
+      closeModal();
+      showNotification('Cập nhật thành công!', 'success');
+    })
+    .catch(error => {
+      showNotification('Lỗi: ' + error.message, 'error');
+    });
 }
 
 window.deleteUser = deleteUser;
 function deleteUser(id) {
   if (confirm('Xóa người dùng này?')) {
-    state.users = state.users.filter(x => x.id !== id);
-    renderUsersTable();
-    showNotification('Đã xóa!', 'success');
+    api.delete(`/admin/users/${id}`)
+      .then(() => {
+        renderUsersTable();
+        showNotification('Đã xóa!', 'success');
+      })
+      .catch(error => {
+        showNotification('Lỗi: ' + error.message, 'error');
+      });
   }
 }
 
 window.toggleUserStatus = toggleUserStatus;
 function toggleUserStatus(id) {
-  const u = state.users.find(x => x.id === id);
-  if (u) {
-    u.status = u.status === 'active' ? 'inactive' : 'active';
-    renderUsersTable();
-    showNotification(`Đã ${u.status === 'active' ? 'kích hoạt' : 'vô hiệu hóa'}`, 'success');
-  }
+  // Toggle active status via API
+  api.patch(`/admin/users/${id}/toggle-status`)
+    .then(() => {
+      renderUsersTable();
+      showNotification('Đã thay đổi trạng thái!', 'success');
+    })
+    .catch(error => {
+      showNotification('Lỗi: ' + error.message, 'error');
+    });
 }

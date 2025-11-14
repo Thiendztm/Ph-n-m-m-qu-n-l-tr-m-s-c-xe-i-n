@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Admin Account - Dev Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        #result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        #result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .credentials {
+            background: #e7f3ff;
+            border: 1px solid #b3d7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .credentials strong {
+            color: #0066cc;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Tạo Admin Account</h1>
+        <p style="color: #666; margin-bottom: 20px;">Development Tool - Tạo tài khoản admin mặc định</p>
+
+        <div class="warning">
+            ⚠️ <strong>Cảnh báo:</strong> Chỉ sử dụng trong môi trường development!<br>
+            Endpoint này nên được xóa trong production.
+        </div>
+
+        <button id="createBtn" onclick="createAdmin()">
+            Tạo Admin Account
+        </button>
+
+        <div id="result"></div>
+
+        <a href="role-selection.html" class="back-link">← Quay lại trang đăng nhập</a>
+    </div>
+
+    <script>
+        async function createAdmin() {
+            const btn = document.getElementById('createBtn');
+            const result = document.getElementById('result');
+            
+            btn.disabled = true;
+            btn.textContent = 'Đang tạo...';
+            result.style.display = 'none';
+
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/create-admin');
+                const data = await response.json();
+
+                result.style.display = 'block';
+
+                if (data.success) {
+                    result.className = 'success';
+                    result.innerHTML = `
+                        <strong>✅ ${data.message}</strong>
+                        <div class="credentials">
+                            <strong>Email:</strong> ${data.email}<br>
+                            <strong>Password:</strong> ${data.password}<br>
+                            ${data.note ? '<br>' + data.note : ''}
+                        </div>
+                        <p style="margin-top: 15px;">
+                            <a href="admin/login.html" style="color: #0066cc; font-weight: 600;">
+                                → Đăng nhập ngay
+                            </a>
+                        </p>
+                    `;
+                } else {
+                    result.className = 'success';
+                    result.innerHTML = `
+                        <strong>ℹ️ ${data.message}</strong>
+                        <div class="credentials">
+                            <strong>Email:</strong> ${data.email}<br>
+                            <strong>Password:</strong> admin123
+                        </div>
+                        <p style="margin-top: 15px;">
+                            <a href="admin/login.html" style="color: #0066cc; font-weight: 600;">
+                                → Đăng nhập ngay
+                            </a>
+                        </p>
+                    `;
+                }
+            } catch (error) {
+                result.style.display = 'block';
+                result.className = 'error';
+                result.innerHTML = `
+                    <strong>❌ Lỗi kết nối</strong><br>
+                    ${error.message}<br><br>
+                    <small>Đảm bảo backend đang chạy trên port 8080</small>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Tạo Admin Account';
+            }
+        }
+    </script>
+</body>
+</html>

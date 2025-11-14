@@ -1,11 +1,15 @@
 package uth.edu.vn.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import uth.edu.vn.entity.*;
 import uth.edu.vn.enums.*;
+import uth.edu.vn.exception.ResourceNotFoundException;
 import uth.edu.vn.service.EVDriverService;
 import uth.edu.vn.repository.*;
 
@@ -20,6 +24,8 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/payment")
 public class PaymentController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
     
     @Autowired
     private EVDriverService evDriverService;
@@ -133,6 +139,18 @@ public class PaymentController {
                 return ResponseEntity.badRequest().body(response);
             }
             
+        } catch (NumberFormatException e) {
+            logger.error("Invalid amount format: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Số tiền không hợp lệ");
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (ResourceNotFoundException e) {
+            logger.error("User not found: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -199,6 +217,18 @@ public class PaymentController {
                 return ResponseEntity.badRequest().body(response);
             }
             
+        } catch (NumberFormatException e) {
+            logger.error("Invalid session ID format: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Session ID không hợp lệ");
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (ResourceNotFoundException e) {
+            logger.error("Resource not found: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         } catch (Exception e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
@@ -288,9 +318,10 @@ public class PaymentController {
             // Session info - tìm qua sessionId
             PhienSac session = phienSacRepository.findById(payment.getSessionId()).orElse(null);
             if (session != null) {
+                double energyValue = session.getEnergyConsumed() != null ? session.getEnergyConsumed().doubleValue() : 0.0;
                 paymentData.put("session", Map.of(
                     "sessionId", session.getSessionId(),
-                    "energyConsumed", session.getEnergyConsumed() != null ? session.getEnergyConsumed() : 0.0,
+                    "energyConsumed", energyValue,
                     "startTime", session.getStartTime().format(DATE_FORMATTER),
                     "endTime", session.getEndTime() != null ? session.getEndTime().format(DATE_FORMATTER) : null
                 ));

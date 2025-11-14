@@ -1,5 +1,6 @@
-import { state } from './data.js';
+import { state, fetchStations } from './data.js';
 import { showNotification, createModal, closeModal } from './utils.js';
+import { api } from './api-client.js';
 
 export function renderStationsPage() {
   const mainContent = document.querySelector('.main-content');
@@ -56,8 +57,19 @@ function createStationCard(station) {
 export function renderStations() {
   const grid = document.getElementById('stationsGrid');
   if (!grid) return;
-  grid.innerHTML = '';
-  state.stations.forEach(s => grid.appendChild(createStationCard(s)));  // ĐÃ SỬA
+  grid.innerHTML = '<p>Đang tải...</p>';
+  
+  // Fetch fresh data from API
+  fetchStations().then(() => {
+    grid.innerHTML = '';
+    if (state.stations.length === 0) {
+      grid.innerHTML = '<p>Không có trạm sạc nào</p>';
+      return;
+    }
+    state.stations.forEach(s => grid.appendChild(createStationCard(s)));
+  }).catch(error => {
+    grid.innerHTML = `<p style="color: red;">Lỗi: ${error.message}</p>`;
+  });
 }
 
 // CRUD Functions
@@ -94,21 +106,25 @@ function addStation() {
   const form = document.getElementById('stationForm');
   const data = new FormData(form);
   const newStation = {
-    id: `FC-${Date.now()}`,
     name: data.get('name'),
-    lat: parseFloat(data.get('lat')),
-    lng: parseFloat(data.get('lng')),
-    connector: data.get('connector'),
-    status: 'available',
-    power: parseInt(data.get('power')),
-    price: parseInt(data.get('price')),
-    address: data.get('address'),
-    distance: '0km', kwh: '0', temp: '25', kw: '0', amp: '0', soc: '0', volt: '0'
+    latitude: parseFloat(data.get('lat')),
+    longitude: parseFloat(data.get('lng')),
+    connectorType: data.get('connector'),
+    status: 'AVAILABLE',
+    powerCapacity: parseInt(data.get('power')),
+    pricePerKwh: parseInt(data.get('price')),
+    address: data.get('address')
   };
-  state.stations.push(newStation);  // ĐÃ SỬA
-  renderStations();
-  closeModal();
-  showNotification('Đã thêm trạm sạc mới thành công!', 'success');
+  
+  api.post('/admin/stations', newStation)
+    .then(() => {
+      renderStations();
+      closeModal();
+      showNotification('Đã thêm trạm sạc mới thành công!', 'success');
+    })
+    .catch(error => {
+      showNotification('Lỗi: ' + error.message, 'error');
+    });
 }
 
 window.editStation = editStation;
@@ -134,27 +150,35 @@ window.updateStation = updateStation;
 function updateStation(id) {
   const form = document.getElementById('editForm');
   const data = new FormData(form);
-  const idx = state.stations.findIndex(x => x.id === id);  // ĐÃ SỬA
-  if (idx !== -1) {
-    state.stations[idx] = {
-      ...state.stations[idx],
-      name: data.get('name'),
-      address: data.get('address'),
-      power: +data.get('power'),
-      price: +data.get('price')
-    };
-    renderStations();
-    closeModal();
-    showNotification('Cập nhật thành công!', 'success');
-  }
+  const updates = {
+    name: data.get('name'),
+    address: data.get('address'),
+    powerCapacity: parseInt(data.get('power')),
+    pricePerKwh: parseInt(data.get('price'))
+  };
+  
+  api.put(`/admin/stations/${id}`, updates)
+    .then(() => {
+      renderStations();
+      closeModal();
+      showNotification('Cập nhật thành công!', 'success');
+    })
+    .catch(error => {
+      showNotification('Lỗi: ' + error.message, 'error');
+    });
 }
 
 window.deleteStation = deleteStation;
 function deleteStation(id) {
   if (confirm('Xóa trạm này?')) {
-    state.stations = state.stations.filter(x => x.id !== id);  // ĐÃ SỬA
-    renderStations();
-    showNotification('Đã xóa!', 'success');
+    api.delete(`/admin/stations/${id}`)
+      .then(() => {
+        renderStations();
+        showNotification('Đã xóa!', 'success');
+      })
+      .catch(error => {
+        showNotification('Lỗi: ' + error.message, 'error');
+      });
   }
 }
 

@@ -28,7 +28,7 @@
                     </a>
                  <i class="fa-solid fa-bars menu_icon" id="menu-icon"></i>
                 <nav class="header__nav">
-                    <ul class="nav__list" id="navList">
+                    <ul class="nav__list">
                         <li class="nav__item">
                             <a class="navbar__link" href="./index.html">
                                 Trang chủ
@@ -44,7 +44,11 @@
                                 Lịch Sử
                             </a>
                         </li>
-                        <!-- Dynamic login/user dropdown will be added by JavaScript -->
+                        <li class="nav__item">
+                            <a class="navbar__link" href="./login.html">
+                                Đăng Nhập
+                            </a>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -125,10 +129,71 @@
         </div>
     </footer>
 
-
-
     <!-- Thêm file JS riêng -->
-    <script src="./src/js/navbar.js"></script>
+    <script>
+        // Navbar management inline
+        function updateNavbar() {
+            const jwt_token = localStorage.getItem('jwt_token');
+            const userName = localStorage.getItem('userName');
+            const userRole = localStorage.getItem('userRole');
+            
+            const navList = document.querySelector('.nav__list');
+            const loginNavItem = navList.querySelector('li:last-child');
+            
+            if (jwt_token && userName) {
+                loginNavItem.innerHTML = `
+                    <div style="position: relative; cursor: pointer;">
+                        <span style="color: white; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-user"></i> ${userName}
+                        </span>
+                        <div style="position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 200px; display: none;" class="user-dropdown">
+                            <a href="./profile.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
+                                <i class="fa-solid fa-user-circle"></i> Hồ sơ
+                            </a>
+                            <a href="#" onclick="logout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #dc3545; text-decoration: none;">
+                                <i class="fa-solid fa-sign-out-alt"></i> Đăng Xuất
+                            </a>
+                        </div>
+                    </div>
+                `;
+                
+                // Add hover effect
+                const userMenu = loginNavItem.querySelector('div');
+                const dropdown = userMenu.querySelector('.user-dropdown');
+                userMenu.addEventListener('mouseenter', () => dropdown.style.display = 'block');
+                userMenu.addEventListener('mouseleave', () => dropdown.style.display = 'none');
+            } else {
+                loginNavItem.innerHTML = `
+                    <a class="navbar__link" href="./login.html">
+                        <i class="fa-solid fa-sign-in-alt"></i> Đăng Nhập
+                    </a>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            alert('Đăng xuất thành công!');
+            window.location.href = 'index.html';
+        }
+
+        // Initialize when DOM loads
+        document.addEventListener('DOMContentLoaded', updateNavbar);
+        if (document.readyState !== 'loading') updateNavbar();
+        
+        // Update navbar when page becomes visible (after redirect from login)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                setTimeout(updateNavbar, 100);
+            }
+        });
+        
+        // Update navbar when localStorage changes (from other tabs or after login)
+        window.addEventListener('storage', updateNavbar);
+        
+        // Also try updating after a short delay (for login redirects)
+        setTimeout(updateNavbar, 500);
+    </script>
     
     <!-- Load map.js first to ensure initMap is available -->
     <script src="./src/js/map.js"></script>

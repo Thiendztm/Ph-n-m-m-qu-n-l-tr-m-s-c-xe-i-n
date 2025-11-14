@@ -3,10 +3,14 @@ package uth.edu.vn.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import uth.edu.vn.dto.auth.AuthResponse;
 import uth.edu.vn.dto.auth.LoginRequest;
 import uth.edu.vn.dto.auth.RegisterRequest;
+import uth.edu.vn.entity.User;
+import uth.edu.vn.enums.UserRole;
+import uth.edu.vn.repository.UserRepository;
 import uth.edu.vn.service.AuthService;
 
 import jakarta.validation.Valid;
@@ -23,6 +27,12 @@ public class AuthController {
     
     @Autowired
     private AuthService authService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     /**
      * Đăng ký user mới (EV Driver)
@@ -104,6 +114,66 @@ public class AuthController {
             errorResponse.put("success", false);
             errorResponse.put("error", "Lỗi khi lấy thông tin user: " + e.getMessage());
             return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+    
+    /**
+     * TEMPORARY ENDPOINT: Tạo admin account
+     * GET /api/auth/create-admin
+     * WARNING: Chỉ dùng cho development, nên xóa trong production!
+     */
+    @GetMapping("/create-admin")
+    public ResponseEntity<Map<String, Object>> createAdmin() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            // Check if admin already exists
+            if (userRepository.existsByEmail("admin@evms.com")) {
+                User existingAdmin = userRepository.findByEmail("admin@evms.com")
+                    .orElse(null);
+                
+                if (existingAdmin != null && existingAdmin.getRole() == UserRole.ADMIN) {
+                    response.put("success", false);
+                    response.put("message", "Admin account already exists!");
+                    response.put("email", "admin@evms.com");
+                    return ResponseEntity.ok(response);
+                } else if (existingAdmin != null) {
+                    // Update existing user to ADMIN
+                    existingAdmin.setRole(UserRole.ADMIN);
+                    userRepository.save(existingAdmin);
+                    
+                    response.put("success", true);
+                    response.put("message", "Existing user promoted to ADMIN!");
+                    response.put("email", "admin@evms.com");
+                    response.put("password", "admin123");
+                    return ResponseEntity.ok(response);
+                }
+            }
+            
+            // Create new admin user
+            User admin = new User();
+            admin.setEmail("admin@evms.com");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setFirstName("System");
+            admin.setLastName("Admin");
+            admin.setPhone("0123456789");
+            admin.setRole(UserRole.ADMIN);
+            admin.setWalletBalance(java.math.BigDecimal.ZERO);
+            
+            userRepository.save(admin);
+            
+            response.put("success", true);
+            response.put("message", "Admin account created successfully!");
+            response.put("email", "admin@evms.com");
+            response.put("password", "admin123");
+            response.put("note", "You can now login with these credentials");
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "Failed to create admin: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
         }
     }
     

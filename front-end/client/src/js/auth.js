@@ -213,11 +213,13 @@ if (loginForm && !inpUserName) { // Login form doesn't have username field
         // Redirect based on role
         setTimeout(() => {
           if (data.role === 'ADMIN') {
-            window.location.href = 'analytics.html'; // Admin dashboard
+            window.location.href = '/admin/index.html'; // Admin dashboard
           } else if (data.role === 'CS_STAFF') {
-            window.location.href = 'analytics.html'; // Staff dashboard
-          } else {
+            window.location.href = '/staff/index.html'; // Staff dashboard
+          } else if (data.role === 'EV_DRIVER') {
             window.location.href = 'index.html'; // EV Driver home
+          } else {
+            window.location.href = 'index.html'; // Default to home
           }
         }, 1500);
       } else {

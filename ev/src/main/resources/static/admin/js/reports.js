@@ -1,4 +1,4 @@
-import { state } from './data.js';
+import { state, fetchReports } from './data.js';
 
 export function renderReportsPage() {
   const main = document.querySelector('.main-content');
@@ -6,7 +6,16 @@ export function renderReportsPage() {
     <div class="content-header">
       <h1>Báo cáo Thống kê</h1>
     </div>
-    <div class="reports-grid">
+    <div class="reports-grid" id="reportsGrid">
+      <p>Đang tải...</p>
+    </div>
+  `;
+  
+  // Fetch fresh data from API
+  fetchReports().then(() => {
+    const grid = document.getElementById('reportsGrid');
+    if (!grid) return;
+    grid.innerHTML = `
       <div class="report-card">
         <div class="report-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
         <div class="report-content">
@@ -49,6 +58,9 @@ export function renderReportsPage() {
           <p class="report-value">${state.reports.averageSessionTime}</p>
         </div>
       </div>
-    </div>
-  `;
+    `;
+  }).catch(error => {
+    const grid = document.getElementById('reportsGrid');
+    if (grid) grid.innerHTML = `<p style="color: red;">Lỗi: ${error.message}</p>`;
+  });
 }

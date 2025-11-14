@@ -1,6 +1,7 @@
 // js/accounts.js
-import { state } from './data.js';
+import { state, fetchAccounts } from './data.js';
 import { createModal, closeModal, showNotification } from './utils.js';
+import { api } from './api-client.js';
 
 export function renderAccountsPage() {
   const main = document.querySelector('.main-content');
@@ -25,21 +26,32 @@ export function renderAccountsPage() {
 export function renderAccountsTable() {
   const tbody = document.getElementById('accountsTableBody');
   if (!tbody) return;
-  tbody.innerHTML = '';
-  state.accounts.forEach(a => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${a.id}</td>
-      <td>${a.userName}</td>
-      <td>${a.balance.toLocaleString()}đ</td>
-      <td><span class="status-badge ${a.status}">${a.status === 'active' ? 'Hoạt động' : 'Đóng băng'}</span></td>
-      <td>${a.lastTransaction}</td>
-      <td>
-        <button class="btn-icon" onclick="viewAccountDetails('${a.id}')"><i class="fa-solid fa-eye"></i></button>
-        <button class="btn-icon" onclick="toggleAccountStatus('${a.id}')"><i class="fa-solid fa-toggle-${a.status === 'active' ? 'on' : 'off'}"></i></button>
-      </td>
-    `;
-    tbody.appendChild(row);
+  tbody.innerHTML = '<tr><td colspan="6">Đang tải...</td></tr>';
+  
+  // Fetch fresh data from API
+  fetchAccounts().then(() => {
+    tbody.innerHTML = '';
+    if (state.accounts.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6">Không có tài khoản nào</td></tr>';
+      return;
+    }
+    state.accounts.forEach(a => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${a.id}</td>
+        <td>${a.userName}</td>
+        <td>${a.balance.toLocaleString()}đ</td>
+        <td><span class="status-badge ${a.status}">${a.status === 'active' ? 'Hoạt động' : 'Đóng băng'}</span></td>
+        <td>${a.lastTransaction}</td>
+        <td>
+          <button class="btn-icon" onclick="viewAccountDetails('${a.id}')"><i class="fa-solid fa-eye"></i></button>
+          <button class="btn-icon" onclick="toggleAccountStatus('${a.id}')"><i class="fa-solid fa-toggle-${a.status === 'active' ? 'on' : 'off'}"></i></button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }).catch(error => {
+    tbody.innerHTML = `<tr><td colspan="6" style="color: red;">Lỗi: ${error.message}</td></tr>`;
   });
 }
 

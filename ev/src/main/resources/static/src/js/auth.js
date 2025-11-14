@@ -22,7 +22,7 @@ function showMessage(message, isSuccess = true) {
 }
 
 function saveAuthData(authResponse) {
-  localStorage.setItem('jwt_token', authResponse.accessToken);
+  localStorage.setItem('accessToken', authResponse.accessToken);
   localStorage.setItem('refreshToken', authResponse.refreshToken);
   localStorage.setItem('userId', authResponse.userId);
   localStorage.setItem('userEmail', authResponse.email);
@@ -31,7 +31,7 @@ function saveAuthData(authResponse) {
 }
 
 function clearAuthData() {
-  localStorage.removeItem('jwt_token');
+  localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('userId');
   localStorage.removeItem('userEmail');
@@ -40,7 +40,7 @@ function clearAuthData() {
 }
 
 function isLoggedIn() {
-  return localStorage.getItem('jwt_token') !== null;
+  return localStorage.getItem('accessToken') !== null;
 }
 
 // ========== REGISTER ==========
@@ -114,64 +114,37 @@ if (registerForm && inpUserName && inpConfirmPwd) {
       return;
     }
 
-    // Parse vehicle info if provided
-    let vehicleModel = '';
-    let vehiclePlate = '';
-    let connectorType = 'Type 2'; // Default
-    
-    if (vehicleInfo) {
-      // Try to parse vehicle info in format: "Model - PlateNumber"
-      // Or just treat it as plate number if no dash
-      if (vehicleInfo.includes(' - ')) {
-        const parts = vehicleInfo.split(' - ');
-        vehicleModel = parts[0].trim();
-        vehiclePlate = parts[1].trim();
-      } else {
-        // Assume it's just the plate number
-        vehiclePlate = vehicleInfo.trim();
-        vehicleModel = 'Unknown';
-      }
-    }
-
     // Call API
     try {
       showMessage("Đang đăng ký...", true);
-
-      const requestData = {
-        email: email,
-        password: password,
-        firstName: firstName,
-        lastName: lastName,
-        phoneNumber: phoneNumber
-      };
-
-      // Add vehicle info if provided
-      if (vehiclePlate) {
-        requestData.vehicleModel = vehicleModel;
-        requestData.vehiclePlate = vehiclePlate;
-        requestData.connectorType = connectorType;
-      }
 
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber
+        })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Save auth data
-        saveAuthData(data);
+        // FORCE clear auth data and redirect to login - NO AUTO LOGIN
+        clearAuthData();
         
-        showMessage("Đăng ký thành công! Đang chuyển hướng...", true);
+        // Force redirect immediately without saving any auth data
+        showMessage("Đăng ký thành công! Chuyển đến trang đăng nhập...", true);
         
-        // Redirect to login page after 1.5 seconds
+        // Use location.replace to prevent back navigation and immediate redirect
         setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 1500);
+          location.replace('login.html');
+        }, 800);
       } else {
         // Handle error from backend
         showMessage(data.message || "Đăng ký thất bại. Vui lòng thử lại.", false);
@@ -232,16 +205,21 @@ if (loginForm && !inpUserName) { // Login form doesn't have username field
         // Save auth data
         saveAuthData(data);
         
+        // Trigger navbar update event
+        window.dispatchEvent(new Event('storage'));
+        
         showMessage("Đăng nhập thành công! Đang chuyển hướng...", true);
         
         // Redirect based on role
         setTimeout(() => {
           if (data.role === 'ADMIN') {
-            window.location.href = 'analytics.html'; // Admin dashboard
+            window.location.href = '/admin/index.html'; // Admin dashboard
           } else if (data.role === 'CS_STAFF') {
-            window.location.href = 'analytics.html'; // Staff dashboard
-          } else {
+            window.location.href = '/staff/index.html'; // Staff dashboard
+          } else if (data.role === 'EV_DRIVER') {
             window.location.href = 'index.html'; // EV Driver home
+          } else {
+            window.location.href = 'index.html'; // Default to home
           }
         }, 1500);
       } else {

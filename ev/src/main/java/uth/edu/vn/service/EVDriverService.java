@@ -104,6 +104,13 @@ public class EVDriverService {
     }
     
     /**
+     * Save or update user
+     */
+    public User saveUser(User user) {
+        return userRepository.save(user);
+    }
+    
+    /**
      * Login method (backward compatibility - AuthService should be used)
      * @deprecated Use AuthService.login() instead
      */
