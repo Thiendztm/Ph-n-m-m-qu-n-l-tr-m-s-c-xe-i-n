@@ -47,7 +47,7 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
     
-    @Value("${cors.allowed-origins}")
+    @Value("${cors.allowed-origins:http://localhost:8080}")
     private String[] allowedOrigins;
     
     /**
@@ -107,6 +107,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints - không cần authentication
                 .requestMatchers(
+                    "/",                      // Root page
+                    "/index.html",            // Home page
+                    "/login.html",            // Login page
+                    "/register.html",         // Register page
+                    "/admin/**",              // Admin frontend pages
+                    "/staff/**",              // Staff frontend pages
+                    "/src/**",                // Static resources (CSS, JS, images)
                     "/api/auth/**",           // Register, login, refresh token
                     "/api/health",            // Health check
                     "/api/stations/public/**", // Public station info

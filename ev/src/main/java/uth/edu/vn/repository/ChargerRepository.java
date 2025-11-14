@@ -25,4 +25,9 @@ public interface ChargerRepository extends JpaRepository<Charger, Long> {
     
     @Query("SELECT COUNT(c) FROM Charger c WHERE c.chargingStation.id = :stationId AND c.status = 'AVAILABLE'")
     Long countAvailableChargersByStation(@Param("stationId") Long stationId);
+    
+    /**
+     * Count charging points by status (for AdminService system overview)
+     */
+    Long countByStatus(PointStatus status);
 }

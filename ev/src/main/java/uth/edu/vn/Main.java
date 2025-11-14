@@ -63,10 +63,11 @@ public class Main {
         }
         
         // 2. Create sample subscriptions for admin
-        GoiDichVu adminSubscription = adminService.createUserSubscription(admin, "Admin Premium Plan", 500000.0);
-        if (adminSubscription != null) {
-            System.out.println("✓ Created admin subscription: " + adminSubscription.getPlanName());
-        }
+        // TODO: Restore subscription creation after GoiDichVu repository is implemented
+        // GoiDichVu adminSubscription = adminService.createUserSubscription(admin, "Admin Premium Plan", 500000.0);
+        // if (adminSubscription != null) {
+        //     System.out.println("✓ Created admin subscription: " + adminSubscription.getPlanName());
+        // }
         
         // 3. Create charging stations
         TramSac station1 = adminService.createChargingStation(
@@ -130,13 +131,14 @@ public class Main {
             driverService.addFundsToWallet(driver2.getId(), 150.0);
         }
         
-        // 6. Create sample subscriptions for drivers  
-        if (driver1 != null) {
-            adminService.createUserSubscription(driver1, "Basic Monthly Plan", 100000.0);
-        }
-        if (driver2 != null) {
-            adminService.createUserSubscription(driver2, "Premium VIP Plan", 300000.0);
-        }
+        // 6. Create sample subscriptions for drivers
+        // TODO: Restore subscription creation after GoiDichVu repository is implemented
+        // if (driver1 != null) {
+        //     adminService.createUserSubscription(driver1, "Basic Monthly Plan", 100000.0);
+        // }
+        // if (driver2 != null) {
+        //     adminService.createUserSubscription(driver2, "Premium VIP Plan", 300000.0);
+        // }
         
         // 7. Create sample vehicles for existing drivers
         if (driver1 != null && driver2 != null) {
