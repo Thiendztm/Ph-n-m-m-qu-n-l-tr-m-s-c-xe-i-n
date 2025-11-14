@@ -32,7 +32,7 @@ export function renderPage() {
 
 function handleLogout() {
   if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-    setTimeout(() => { window.location.href = '../index.html'; }, 1000);
+    setTimeout(() => { window.location.href = './login.html'; }, 1000);
   }
 }
 
