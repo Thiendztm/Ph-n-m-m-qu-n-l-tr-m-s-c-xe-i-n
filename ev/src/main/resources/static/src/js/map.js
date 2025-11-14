@@ -36,6 +36,75 @@ let map;
 let markers = [];
 let isMapLoaded = false;
 
+// Fallback stations data (used if API fails)
+const FALLBACK_STATIONS = [
+    new tram("Trạm sạc Bình Thạnh", 10.8231, 106.6297, "CCS", "available", 50, 3500, "123 Nguyễn Văn Cừ, Bình Thạnh, TP.HCM", "1.2km"),
+    new tram("Trạm sạc Quận 1", 10.7769, 106.7009, "AC", "available", 75, 4000, "789 Nguyễn Huệ, Q.1, TP.HCM", "2.1km"),
+    new tram("Trạm sạc Thủ Đức", 10.8700, 106.8030, "CHAdeMO", "available", 100, 3000, "Đại học Quốc gia, Thủ Đức, TP.HCM", "5km"),
+    new tram("Trạm sạc Quận 3", 10.7860, 106.6917, "CCS", "available", 60, 3500, "456 Võ Văn Tần, Q.3, TP.HCM", "1.5km"),
+    new tram("Trạm sạc Phú Nhuận", 10.7995, 106.6758, "AC", "occupied", 50, 3800, "789 Phan Xích Long, Phú Nhuận, TP.HCM", "2km"),
+    new tram("Trạm sạc Tân Bình", 10.8008, 106.6527, "CCS", "available", 75, 3500, "Sân bay Tân Sơn Nhất, TP.HCM", "3km"),
+    new tram("Trạm sạc Gò Vấp", 10.8376, 106.6666, "CHAdeMO", "available", 80, 3200, "Ngã tư Quang Trung, Gò Vấp, TP.HCM", "4km"),
+    new tram("Trạm sạc Quận 7", 10.7329, 106.7218, "CCS", "available", 100, 3600, "Phú Mỹ Hưng, Q.7, TP.HCM", "6km"),
+    new tram("Trạm sạc Bình Tân", 10.7398, 106.6164, "AC", "available", 50, 3400, "Aeon Mall Bình Tân, TP.HCM", "8km"),
+    new tram("Trạm sạc Quận 2", 10.7883, 106.7554, "CCS", "occupied", 75, 3700, "Thảo Điền, Q.2, TP.HCM", "3.5km"),
+    new tram("Trạm sạc Quận 10", 10.7731, 106.6701, "AC", "available", 60, 3500, "368 Trần Hưng Đạo, Q.10, TP.HCM", "1.8km"),
+    new tram("Trạm sạc Quận 5", 10.7557, 106.6761, "CHAdeMO", "available", 90, 3300, "Chợ Lớn, Q.5, TP.HCM", "2.3km")
+];
+
+// Fetch stations from local API only
+async function fetchStationsFromAPI() {
+    console.log('=== Fetching stations from local API ===');
+    
+    try {
+        const response = await fetch('/api/stations');
+        
+        if (!response.ok) {
+            console.warn(`⚠ Local API returned HTTP ${response.status}`);
+            throw new Error('Failed to fetch from local API');
+        }
+        
+        const data = await response.json();
+        const stations = data.stations || [];
+        
+        if (stations.length === 0) {
+            console.warn('⚠ No stations in database, using fallback data');
+            return FALLBACK_STATIONS;
+        }
+        
+        console.log(`✓ Loaded ${stations.length} stations from local API`);
+        
+        // Convert API data to tram objects
+        const localStations = stations.map(s => {
+            const status = s.availableChargers > 0 ? 'available' : 'occupied';
+            const connector = s.connectorTypes ? Object.keys(s.connectorTypes)[0] : 'CCS';
+            
+            return new tram(
+                s.name,
+                s.latitude,
+                s.longitude,
+                connector,
+                status,
+                50,  // Default power
+                3500, // Default price
+                s.address,
+                '--'
+            );
+        });
+        
+        // Merge with fallback stations to ensure map has data
+        const allStations = [...localStations, ...FALLBACK_STATIONS];
+        console.log(`📍 Total stations: ${allStations.length}`);
+        
+        return allStations;
+        
+    } catch (error) {
+        console.error('❌ Error fetching stations:', error.message);
+        console.log('Using fallback data...');
+        return FALLBACK_STATIONS;
+    }
+}
+
 // Main initialization function
 async function initMap() {
     console.log('initMap called');
@@ -65,12 +134,10 @@ async function initMap() {
             ]
         });
 
-        // Tạo các trạm sạc mẫu
-        const stations = [
-            new tram("Trạm sạc Bình Thạnh 1", 10.8231, 106.6297, "CCS", "available", 50, 3500, "123 Nguyễn Văn Cừ, Bình Thạnh, TP.HCM", "1.2km"),
-            new tram("Trạm sạc Quận 1", 10.7769, 106.7009, "AC", "available", 75, 4000, "789 Nguyễn Huệ, Q.1, TP.HCM", "2.1km"),
-            new tram("Trạm Sạc Sài Gòn 3", 10.770, 106.690, "CHAdeMO", "available", 100, 2500, "3 Pasteur, Q.1, TP.HCM", "0.8km")
-        ];
+        // Fetch stations from API
+        console.log('Fetching stations from API...');
+        const stations = await fetchStationsFromAPI();
+        console.log(`Loaded ${stations.length} stations from API`);
 
         const infowindow = new google.maps.InfoWindow({ content: "", maxWidth: 320 });
         
@@ -289,29 +356,42 @@ function filterMarkers(stations) {
 }
 
 // Bắt đầu đặt chỗ
-function startBooking(stationId) {
-    const entry = markers.find(m => m.station.id === stationId);
-    if (!entry || entry.station.status === 'busy') {
-        alert("Trạm đang bận hoặc không tồn tại!");
-        return;
+async function startBooking(stationId) {
+    try {
+        // Get JWT token
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('jwt_token');
+        if (!token) {
+            alert('Vui lòng đăng nhập để đặt chỗ!');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        const entry = markers.find(m => m.station.id === stationId);
+        if (!entry || entry.station.status === 'busy') {
+            alert("Trạm đang bận hoặc không tồn tại!");
+            return;
+        }
+
+        const s = entry.station;
+        const bookingInfo = {
+            id: s.id,
+            name: s.name,
+            address: s.address,
+            connector: s.connector,
+            power: s.power,
+            price: s.price,
+            distance: s.distance,
+            connectorDisplay: `${s.connector} - ${s.power}kW`,
+            priceDisplay: `${s.price.toLocaleString()}đ/kWh`
+        };
+
+        localStorage.setItem('bookingStation', JSON.stringify(bookingInfo));
+        localStorage.setItem('bookingStatus', 'pending');
+        window.location.href = 'payment.html';
+    } catch (error) {
+        console.error('Booking error:', error);
+        alert('Có lỗi xảy ra: ' + error.message);
     }
-
-    const s = entry.station;
-    const bookingInfo = {
-        id: s.id,
-        name: s.name,
-        address: s.address,
-        connector: s.connector,
-        power: s.power,
-        price: s.price,
-        distance: s.distance,
-        connectorDisplay: `${s.connector} - ${s.power}kW`,
-        priceDisplay: `${s.price.toLocaleString()}đ/kWh`
-    };
-
-    localStorage.setItem('bookingStation', JSON.stringify(bookingInfo));
-    localStorage.setItem('bookingStatus', 'pending');
-    window.location.href = 'payment.html';
 }
 
 // Áp dụng đặt chỗ thành công khi quay lại
