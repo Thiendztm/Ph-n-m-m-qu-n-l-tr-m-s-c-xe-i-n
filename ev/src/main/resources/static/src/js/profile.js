@@ -1,6 +1,29 @@
 // ========== CONFIG ==========
 const API_BASE_URL = 'http://localhost:8080/api';
 
+// ========== WALLET BALANCE MANAGEMENT ==========
+function getWalletBalance() {
+    const balance = localStorage.getItem('walletBalance');
+    return balance ? parseFloat(balance) : 1250000; // Default balance 1,250,000đ
+}
+
+function updateProfileWalletDisplay() {
+    const balance = getWalletBalance();
+    const profileWalletBalance = document.getElementById('profileWalletBalance');
+    if (profileWalletBalance) {
+        profileWalletBalance.textContent = balance.toLocaleString('vi-VN') + 'đ';
+        
+        // Add color coding based on balance
+        if (balance >= 1000000) {
+            profileWalletBalance.style.color = '#28a745'; // Green for good balance
+        } else if (balance >= 500000) {
+            profileWalletBalance.style.color = '#fd7e14'; // Orange for medium balance
+        } else {
+            profileWalletBalance.style.color = '#dc3545'; // Red for low balance
+        }
+    }
+}
+
 // ========== AUTHENTICATION CHECK ==========
 function checkAuthentication() {
     const token = getAuthToken();
@@ -212,6 +235,25 @@ function displayProfile(data) {
     } else {
         displayVehicle.textContent = 'Chưa có thông tin xe';
     }
+    
+    // Hiển thị số dư ví từ database
+    const walletBalance = user.walletBalance || 0;
+    const profileWalletBalance = document.getElementById('profileWalletBalance');
+    if (profileWalletBalance) {
+        profileWalletBalance.textContent = walletBalance.toLocaleString('vi-VN') + 'đ';
+        
+        // Add color coding based on balance
+        if (walletBalance >= 1000000) {
+            profileWalletBalance.style.color = '#28a745'; // Green for good balance
+        } else if (walletBalance >= 500000) {
+            profileWalletBalance.style.color = '#fd7e14'; // Orange for medium balance
+        } else {
+            profileWalletBalance.style.color = '#dc3545'; // Red for low balance
+        }
+    }
+    
+    // Cập nhật localStorage với số dư từ database
+    localStorage.setItem('walletBalance', walletBalance.toString());
 
     // Cập nhật form edit với dữ liệu thực
     editName.value = fullName;
@@ -289,6 +331,12 @@ function toggleEditMode(isEdit) {
 document.addEventListener('DOMContentLoaded', function() {
     // Debug tokens first
     debugTokens();
+    
+    // Load và hiển thị số dư ví
+    updateProfileWalletDisplay();
+    
+    // Update wallet balance every 5 seconds in case it changes
+    setInterval(updateProfileWalletDisplay, 5000);
     
     // Kiểm tra authentication
     const token = getAuthToken();

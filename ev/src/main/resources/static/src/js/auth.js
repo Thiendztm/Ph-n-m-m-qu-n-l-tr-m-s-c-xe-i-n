@@ -22,7 +22,7 @@ function showMessage(message, isSuccess = true) {
 }
 
 function saveAuthData(authResponse) {
-  localStorage.setItem('accessToken', authResponse.accessToken);
+  localStorage.setItem('jwt_token', authResponse.accessToken);
   localStorage.setItem('refreshToken', authResponse.refreshToken);
   localStorage.setItem('userId', authResponse.userId);
   localStorage.setItem('userEmail', authResponse.email);
@@ -31,7 +31,7 @@ function saveAuthData(authResponse) {
 }
 
 function clearAuthData() {
-  localStorage.removeItem('accessToken');
+  localStorage.removeItem('jwt_token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('userId');
   localStorage.removeItem('userEmail');
@@ -40,7 +40,7 @@ function clearAuthData() {
 }
 
 function isLoggedIn() {
-  return localStorage.getItem('accessToken') !== null;
+  return localStorage.getItem('jwt_token') !== null;
 }
 
 // ========== REGISTER ==========

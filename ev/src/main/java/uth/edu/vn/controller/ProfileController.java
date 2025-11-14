@@ -140,4 +140,54 @@ public class ProfileController {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }
+    
+    /**
+     * PUT /api/profile/wallet - Cập nhật số dư ví
+     */
+    @PutMapping("/wallet")
+    public ResponseEntity<String> updateWallet(@RequestBody UpdateWalletRequest request, Authentication auth) {
+        try {
+            System.out.println("=== ProfileController.updateWallet() CALLED ===");
+            System.out.println("Amount to deduct: " + request.getAmount());
+            
+            // Lấy email từ JWT token
+            String userEmail = auth.getName();
+            System.out.println("Email from JWT: " + userEmail);
+            
+            // Tìm user trong database
+            User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Kiểm tra số dư hiện tại
+            Double currentBalance = user.getWalletBalance() != null ? user.getWalletBalance() : 0.0;
+            System.out.println("Current balance: " + currentBalance);
+            
+            if (currentBalance < request.getAmount()) {
+                return ResponseEntity.badRequest()
+                    .body("{\"error\":\"Insufficient balance\",\"currentBalance\":" + currentBalance + "}");
+            }
+            
+            // Trừ tiền từ ví
+            Double newBalance = currentBalance - request.getAmount();
+            user.setWalletBalance(newBalance);
+            userRepository.save(user);
+            
+            System.out.println("New balance: " + newBalance);
+            
+            return ResponseEntity.ok("{\"message\":\"Wallet updated successfully\",\"newBalance\":" + newBalance + "}");
+            
+        } catch (Exception e) {
+            System.err.println("=== ProfileController.updateWallet() ERROR: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+    
+    // DTO cho wallet update request
+    public static class UpdateWalletRequest {
+        private Double amount;
+        
+        public Double getAmount() { return amount; }
+        public void setAmount(Double amount) { this.amount = amount; }
+    }
 }
