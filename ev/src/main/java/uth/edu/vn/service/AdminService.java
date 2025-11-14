@@ -43,6 +43,9 @@ public class AdminService {
     private PhienSacRepository phienSacRepository;
     
     @Autowired
+    private GoiDichVuRepository goiDichVuRepository;
+    
+    @Autowired
     private PasswordEncoder passwordEncoder;
     
     // ==================== 1. STATION & CHARGING POINT MANAGEMENT ====================
@@ -170,6 +173,82 @@ public class AdminService {
         List<User> users = userRepository.findByRole(role);
         logger.info("Total {} users: {}", role, users.size());
         return users;
+    }
+    
+    /**
+     * Tạo subscription cho user
+     */
+    public GoiDichVu createUserSubscription(Long userId, String planName, Double monthlyFee) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        
+        // Check if user already has active subscription
+        if (goiDichVuRepository.hasActiveSubscription(userId, LocalDateTime.now())) {
+            throw new IllegalStateException("User already has an active subscription");
+        }
+        
+        GoiDichVu subscription = new GoiDichVu(user, planName, java.math.BigDecimal.valueOf(monthlyFee));
+        subscription = goiDichVuRepository.save(subscription);
+        
+        logger.info("Subscription created for user {}: {} (${}/month)", user.getEmail(), planName, monthlyFee);
+        return subscription;
+    }
+    
+    /**
+     * Lấy tất cả active subscriptions
+     */
+    @Transactional(readOnly = true)
+    public List<GoiDichVu> getActiveSubscriptions() {
+        List<GoiDichVu> subscriptions = goiDichVuRepository.findAllActiveSubscriptions(LocalDateTime.now());
+        logger.info("Total active subscriptions: {}", subscriptions.size());
+        return subscriptions;
+    }
+    
+    /**
+     * Cancel subscription
+     */
+    public boolean cancelSubscription(Long subscriptionId) {
+        try {
+            GoiDichVu subscription = goiDichVuRepository.findById(subscriptionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription not found with id: " + subscriptionId));
+            
+            subscription.cancelSubscription();
+            goiDichVuRepository.save(subscription);
+            
+            logger.info("Subscription {} cancelled for user {}", subscriptionId, subscription.getUser().getEmail());
+            return true;
+        } catch (Exception e) {
+            logger.error("Error cancelling subscription: {}", subscriptionId, e);
+            return false;
+        }
+    }
+    
+    /**
+     * Lấy subscription statistics
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getSubscriptionStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        try {
+            Long activeCount = goiDichVuRepository.countActiveSubscriptions(LocalDateTime.now());
+            java.math.BigDecimal monthlyRevenue = goiDichVuRepository.getTotalMonthlyRevenue(LocalDateTime.now());
+            List<Object[]> planStats = goiDichVuRepository.getSubscriptionStatistics();
+            
+            stats.put("activeSubscriptions", activeCount);
+            stats.put("monthlyRevenue", monthlyRevenue);
+            stats.put("planStatistics", planStats);
+            
+            logger.info("=== SUBSCRIPTION STATISTICS ===");
+            logger.info("Active Subscriptions: {}", activeCount);
+            logger.info("Monthly Revenue: ${}", monthlyRevenue);
+            logger.info("================================");
+            
+            return stats;
+        } catch (Exception e) {
+            logger.error("Error getting subscription statistics", e);
+            return stats;
+        }
     }
     
     // ==================== 3. REPORTS & ANALYTICS ====================

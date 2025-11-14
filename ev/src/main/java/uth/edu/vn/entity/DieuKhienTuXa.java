@@ -2,6 +2,7 @@ package uth.edu.vn.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import uth.edu.vn.enums.TelemetryStatus;
 
 @Entity
 @Table(name = "dieu_khien_tu_xa")
@@ -102,11 +103,4 @@ public class DieuKhienTuXa {
     
     public String getErrorMessage() { return errorMessage; }
     public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
-}
-
-enum TelemetryStatus {
-    NORMAL,
-    WARNING,
-    ERROR,
-    OFFLINE
 }

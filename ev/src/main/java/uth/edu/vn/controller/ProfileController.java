@@ -9,6 +9,7 @@ import uth.edu.vn.entity.Xe;
 import uth.edu.vn.repository.UserRepository;
 import uth.edu.vn.repository.XeRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -159,16 +160,17 @@ public class ProfileController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
             
             // Kiểm tra số dư hiện tại
-            Double currentBalance = user.getWalletBalance() != null ? user.getWalletBalance() : 0.0;
+            BigDecimal currentBalance = user.getWalletBalance() != null ? user.getWalletBalance() : BigDecimal.ZERO;
             System.out.println("Current balance: " + currentBalance);
             
-            if (currentBalance < request.getAmount()) {
+            BigDecimal amountToDeduct = BigDecimal.valueOf(request.getAmount());
+            if (currentBalance.compareTo(amountToDeduct) < 0) {
                 return ResponseEntity.badRequest()
                     .body("{\"error\":\"Insufficient balance\",\"currentBalance\":" + currentBalance + "}");
             }
             
             // Trừ tiền từ ví
-            Double newBalance = currentBalance - request.getAmount();
+            BigDecimal newBalance = currentBalance.subtract(amountToDeduct);
             user.setWalletBalance(newBalance);
             userRepository.save(user);
             
