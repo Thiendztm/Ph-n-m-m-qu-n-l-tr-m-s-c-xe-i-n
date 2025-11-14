@@ -34,4 +34,49 @@ public interface PhienSacRepository extends JpaRepository<PhienSac, Long> {
     
     @Query("SELECT SUM(ps.totalCost) FROM PhienSac ps WHERE ps.user.id = :userId AND MONTH(ps.startTime) = :month AND YEAR(ps.startTime) = :year")
     Double getMonthlyChargingCost(@Param("userId") Long userId, @Param("month") int month, @Param("year") int year);
+    
+    // ==================== Methods for AdminService ====================
+    
+    /**
+     * Count sessions by status (for usage statistics)
+     */
+    Long countByStatus(SessionStatus status);
+    
+    /**
+     * Get total revenue by charging station
+     */
+    @Query("SELECT SUM(ps.totalCost) FROM PhienSac ps WHERE ps.chargingPoint.chargingStation.id = :stationId AND ps.totalCost IS NOT NULL")
+    Double getTotalRevenueByStation(@Param("stationId") Long stationId);
+    
+    /**
+     * Get monthly session count
+     */
+    @Query("SELECT COUNT(ps) FROM PhienSac ps WHERE YEAR(ps.startTime) = :year AND MONTH(ps.startTime) = :month")
+    Long getMonthlySessionCount(@Param("year") int year, @Param("month") int month);
+    
+    /**
+     * Get monthly energy consumed
+     */
+    @Query("SELECT SUM(ps.energyConsumed) FROM PhienSac ps WHERE YEAR(ps.startTime) = :year AND MONTH(ps.startTime) = :month")
+    Double getMonthlyEnergyConsumed(@Param("year") int year, @Param("month") int month);
+    
+    /**
+     * Get monthly revenue
+     */
+    @Query("SELECT SUM(ps.totalCost) FROM PhienSac ps WHERE YEAR(ps.startTime) = :year AND MONTH(ps.startTime) = :month")
+    Double getMonthlyRevenue(@Param("year") int year, @Param("month") int month);
+    
+    // ==================== Methods for CSStaffService ====================
+    
+    /**
+     * Find sessions by station and status
+     */
+    @Query("SELECT ps FROM PhienSac ps WHERE ps.chargingPoint.chargingStation.id = :stationId AND ps.status = :status")
+    List<PhienSac> findByChargingPointChargingStationIdAndStatus(@Param("stationId") Long stationId, @Param("status") SessionStatus status);
+    
+    /**
+     * Find sessions by station and start time range (for daily reports)
+     */
+    @Query("SELECT ps FROM PhienSac ps WHERE ps.chargingPoint.chargingStation.id = :stationId AND ps.startTime BETWEEN :startTime AND :endTime")
+    List<PhienSac> findByChargingPointChargingStationIdAndStartTimeBetween(@Param("stationId") Long stationId, @Param("startTime") LocalDateTime startTime, @Param("endTime") LocalDateTime endTime);
 }

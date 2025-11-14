@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nhân viên Trạm sạc</title>
+  <link rel="stylesheet" href="./css/staff.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <i class="fa-solid fa-charging-station"></i>
+        <span>Station Staff</span>
+      </div>
+      <ul class="menu">
+        <li class="active" data-page="monitoring"><i class="fa-solid fa-bolt"></i><span>Giám sát</span></li>
+        <li data-page="payments"><i class="fa-solid fa-receipt"></i><span>Thanh toán</span></li>
+        <li data-page="incidents"><i class="fa-solid fa-triangle-exclamation"></i><span>Báo sự cố</span></li>
+      </ul>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <h1 id="pageTitle">Giám sát điểm sạc</h1>
+        <div class="topbar-actions">
+          <button id="refreshBtn" class="btn"><i class="fa-solid fa-rotate"></i> Làm mới</button>
+        </div>
+      </header>
+      <section id="content" class="content">
+        <!-- dynamic -->
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./js/data.js"></script>
+  <script type="module" src="./js/utils.js"></script>
+  <script type="module" src="./js/stations.js"></script>
+  <script type="module" src="./js/staff.js"></script>
+</body>
+<script>
+// Prevent FOUC on some CDNs
+</script>
+</html>
+

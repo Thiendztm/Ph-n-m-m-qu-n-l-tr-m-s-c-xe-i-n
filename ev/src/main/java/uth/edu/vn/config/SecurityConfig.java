@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -34,7 +34,7 @@ import java.util.Arrays;
  */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(
+@EnableMethodSecurity(
     securedEnabled = true,
     jsr250Enabled = true,
     prePostEnabled = true  // Enable @PreAuthorize, @PostAuthorize
@@ -47,7 +47,7 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
     
-    @Value("${cors.allowed-origins}")
+    @Value("${cors.allowed-origins:http://localhost:8080}")
     private String[] allowedOrigins;
     
     /**
@@ -86,52 +86,65 @@ public class SecurityConfig {
     }
     
     /**
-     * Configure HTTP Security (SecurityFilterChain thay vì WebSecurityConfigurerAdapter)
+     * Configure HTTP Security (SecurityFilterChain cho Spring Security 6)
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // CORS configuration
-            .cors()
-            .and()
+            // CORS configuration - new syntax
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             
             // CSRF disabled vì dùng JWT (stateless)
-            .csrf().disable()
+            .csrf(csrf -> csrf.disable())
             
-            // Exception handling
-            .exceptionHandling()
-                .authenticationEntryPoint(unauthorizedHandler)
-            .and()
+            // Exception handling - new syntax
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(unauthorizedHandler))
             
             // Session management - STATELESS (không dùng session)
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             
-            // Authorization rules
-            .authorizeRequests()
+            // Authorization rules - new syntax
+            .authorizeHttpRequests(auth -> auth
                 // Public endpoints - không cần authentication
-                .antMatchers(
+                .requestMatchers(
+                    "/",                      // Root page
+                    "/index.html",            // Home page
+                    "/login.html",            // Login page
+                    "/register.html",         // Register page
+                    "/profile.html",          // Profile page
+                    "/analytics.html",        // Analytics page
+                    "/payment.html",          // Payment page
+                    "/admin/**",              // Admin frontend pages
+                    "/staff/**",              // Staff frontend pages
+                    "/src/**",                // Static resources (CSS, JS, images)
                     "/api/auth/**",           // Register, login, refresh token
+                    "/api/test/**",           // Test endpoints
+                    "/api/debug/public",      // Debug public endpoint
                     "/api/health",            // Health check
-                    "/api/stations/public/**", // Public station info
+                    "/api/stations/**",       // All station endpoints
                     "/ws/**"                  // WebSocket endpoint
                 ).permitAll()
                 
-                // EV Driver endpoints
-                .antMatchers("/api/driver/**").hasRole("EV_DRIVER")
-                .antMatchers("/api/bookings/**").hasRole("EV_DRIVER")
-                .antMatchers("/api/sessions/**").hasRole("EV_DRIVER")
-                .antMatchers("/api/wallet/**").hasRole("EV_DRIVER")
+                // Debug endpoints - cần authentication
+                .requestMatchers("/api/debug/auth").authenticated()
+                
+                // EV Driver endpoints - cần authentication
+                .requestMatchers("/api/profile/**").authenticated()
+                .requestMatchers("/api/history/**").authenticated()
+                .requestMatchers("/api/driver/**").hasRole("EV_DRIVER")
+                .requestMatchers("/api/bookings/**").hasRole("EV_DRIVER")
+                .requestMatchers("/api/sessions/**").hasRole("EV_DRIVER")
+                .requestMatchers("/api/wallet/**").hasRole("EV_DRIVER")
                 
                 // CS Staff endpoints
-                .antMatchers("/api/staff/**").hasRole("CS_STAFF")
+                .requestMatchers("/api/staff/**").hasRole("CS_STAFF")
                 
                 // Admin endpoints
-                .antMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 
                 // All other requests need authentication
-                .anyRequest().authenticated();
+                .anyRequest().authenticated()
+            );
         
         // Set authentication provider
         http.authenticationProvider(authenticationProvider());
@@ -149,8 +162,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allowed origins (frontend URLs)
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        // Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is true
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*", 
+            "http://127.0.0.1:*",
+            "https://localhost:*",
+            "https://127.0.0.1:*"
+        ));
         
         // Allowed HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));

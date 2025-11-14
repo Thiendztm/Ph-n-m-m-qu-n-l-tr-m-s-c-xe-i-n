@@ -1,254 +1,253 @@
 package uth.edu.vn.service;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uth.edu.vn.entity.*;
 import uth.edu.vn.enums.*;
-import uth.edu.vn.util.HibernateUtil;
+import uth.edu.vn.exception.ResourceNotFoundException;
+import uth.edu.vn.repository.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * Service class for Charging Station Staff functionalities
+ * REFACTORED: Sử dụng Spring Data JPA thay vì HibernateUtil
+ * 
  * 1. Payment management at charging stations
  * 2. Monitoring and reporting
  */
+@Service
+@Transactional
 public class CSStaffService {
     
-    // 1. Payment management at charging stations
+    private static final Logger logger = LoggerFactory.getLogger(CSStaffService.class);
+    
+    @Autowired
+    private ChargerRepository chargerRepository;
+    
+    @Autowired
+    private PhienSacRepository phienSacRepository;
+    
+    @Autowired
+    private ThanhToanRepository thanhToanRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private XeRepository xeRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    // ==================== 1. PAYMENT MANAGEMENT AT CHARGING STATIONS ====================
+    
+    /**
+     * Start charging session by staff for walk-in customers
+     * Creates temporary user and vehicle for cash payments
+     */
     public PhienSac startSessionByStaff(Long pointId, String vehiclePlate) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction transaction = null;
-        
         try {
-            transaction = session.beginTransaction();
+            Charger point = chargerRepository.findById(pointId)
+                .orElseThrow(() -> new ResourceNotFoundException("Charging point not found with id: " + pointId));
             
-            Charger point = session.get(Charger.class, pointId);
-            
-            if (point != null && point.getStatus() == PointStatus.AVAILABLE) {
-                // Create temporary user for walk-in customers
-                User walkInUser = new User("walkin_" + System.currentTimeMillis() + "@temp.com", 
-                                         "temp123", "Walk-in", "Customer", UserRole.EV_DRIVER);
-                
-                // Create vehicle for walk-in customer
-                Xe walkInVehicle = new Xe();
-                walkInVehicle.setUserId(walkInUser.getId());
-                walkInVehicle.setPlateNumber(vehiclePlate);
-                walkInVehicle.setPlugType("Type2"); // Default plug type
-                session.save(walkInVehicle);
-                
-                session.save(walkInUser);
-                
-                PhienSac chargingSession = new PhienSac(walkInUser, point, "STAFF_" + System.currentTimeMillis());
-                
-                // Update charging point status
-                point.setStatus(PointStatus.OCCUPIED);
-                
-                session.save(chargingSession);
-                session.update(point);
-                transaction.commit();
-                
-                System.out.println("Charging session started by staff for vehicle: " + vehiclePlate);
-                return chargingSession;
+            if (point.getStatus() != PointStatus.AVAILABLE) {
+                logger.warn("Charging point {} is not available. Status: {}", pointId, point.getStatus());
+                return null;
             }
             
-            return null;
+            // Create temporary user for walk-in customers
+            User walkInUser = new User(
+                "walkin_" + System.currentTimeMillis() + "@temp.com", 
+                passwordEncoder.encode("temp123"), 
+                "Walk-in", 
+                "Customer", 
+                UserRole.EV_DRIVER
+            );
+            walkInUser = userRepository.save(walkInUser);
+            
+            // Create vehicle for walk-in customer
+            Xe walkInVehicle = new Xe();
+            walkInVehicle.setUserId(walkInUser.getId());
+            walkInVehicle.setPlateNumber(vehiclePlate);
+            walkInVehicle.setPlugType("Type2"); // Default plug type
+            walkInVehicle = xeRepository.save(walkInVehicle);
+            
+            // Create charging session
+            PhienSac chargingSession = new PhienSac(walkInUser, point, "STAFF_" + System.currentTimeMillis());
+            chargingSession = phienSacRepository.save(chargingSession);
+            
+            // Update charging point status
+            point.setStatus(PointStatus.OCCUPIED);
+            chargerRepository.save(point);
+            
+            logger.info("Charging session started by staff for vehicle: {}", vehiclePlate);
+            return chargingSession;
             
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
+            logger.error("Error starting charging session by staff for vehicle: {}", vehiclePlate, e);
             return null;
-        } finally {
-            session.close();
         }
     }
     
+    /**
+     * Stop charging session and calculate final cost
+     */
     public boolean stopChargingSession(Long sessionId, Double energyConsumed, Integer endSoc) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction transaction = null;
-        
         try {
-            transaction = session.beginTransaction();
+            PhienSac chargingSession = phienSacRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Charging session not found with id: " + sessionId));
             
-            PhienSac chargingSession = session.get(PhienSac.class, sessionId);
-            
-            if (chargingSession != null && chargingSession.getStatus() == SessionStatus.ACTIVE) {
-                // Update session details
-                chargingSession.setEndTime(LocalDateTime.now());
-                chargingSession.setEnergyConsumed(energyConsumed);
-                chargingSession.setEndSoc(endSoc);
-                chargingSession.setStatus(SessionStatus.COMPLETED);
-                
-                // Calculate total cost
-                Double pricePerKwh = chargingSession.getChargingPoint().getPricePerKwh();
-                Double totalCost = energyConsumed * pricePerKwh;
-                chargingSession.setTotalCost(totalCost);
-                
-                // Update charging point status
-                Charger point = chargingSession.getChargingPoint();
-                point.setStatus(PointStatus.AVAILABLE);
-                
-                session.update(chargingSession);
-                session.update(point);
-                transaction.commit();
-                
-                System.out.println("Charging session stopped. Energy consumed: " + energyConsumed + " kWh, Cost: $" + totalCost);
-                return true;
+            if (chargingSession.getStatus() != SessionStatus.ACTIVE) {
+                logger.warn("Cannot stop session {}. Current status: {}", sessionId, chargingSession.getStatus());
+                return false;
             }
             
-            return false;
+            // Update session details
+            chargingSession.setEndTime(LocalDateTime.now());
+            chargingSession.setEnergyConsumed(energyConsumed);
+            chargingSession.setEndSoc(endSoc);
+            chargingSession.setStatus(SessionStatus.COMPLETED);
+            
+            // Calculate total cost
+            Double pricePerKwh = chargingSession.getChargingPoint().getPricePerKwh();
+            Double totalCost = energyConsumed * pricePerKwh;
+            chargingSession.setTotalCost(totalCost);
+            
+            phienSacRepository.save(chargingSession);
+            
+            // Update charging point status
+            Charger point = chargingSession.getChargingPoint();
+            point.setStatus(PointStatus.AVAILABLE);
+            chargerRepository.save(point);
+            
+            logger.info("Charging session stopped. Energy: {} kWh, Cost: ${}", energyConsumed, totalCost);
+            return true;
             
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
+            logger.error("Error stopping charging session: {}", sessionId, e);
             return false;
-        } finally {
-            session.close();
         }
     }
     
+    /**
+     * Process cash payment for completed charging session
+     */
     public ThanhToan processCashPayment(Long sessionId) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction transaction = null;
-        
         try {
-            transaction = session.beginTransaction();
+            PhienSac chargingSession = phienSacRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Charging session not found with id: " + sessionId));
             
-            PhienSac chargingSession = session.get(PhienSac.class, sessionId);
-            
-            if (chargingSession != null && chargingSession.getTotalCost() != null) {
-                ThanhToan payment = new ThanhToan(
-                    chargingSession.getSessionId(), 
-                    java.math.BigDecimal.valueOf(chargingSession.getTotalCost()), 
-                    "CASH"
-                );
-                
-                payment.setStatus("COMPLETED");
-                
-                session.save(payment);
-                transaction.commit();
-                
-                System.out.println("Cash payment processed: $" + chargingSession.getTotalCost());
-                return payment;
+            if (chargingSession.getTotalCost() == null) {
+                logger.warn("Cannot process payment - session {} has no total cost", sessionId);
+                return null;
             }
             
-            return null;
+            ThanhToan payment = new ThanhToan(
+                chargingSession.getSessionId(), 
+                java.math.BigDecimal.valueOf(chargingSession.getTotalCost()), 
+                "CASH"
+            );
+            payment.setStatus("COMPLETED");
+            
+            payment = thanhToanRepository.save(payment);
+            
+            logger.info("Cash payment processed: ${}", chargingSession.getTotalCost());
+            return payment;
             
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
+            logger.error("Error processing cash payment for session: {}", sessionId, e);
             return null;
-        } finally {
-            session.close();
         }
     }
     
-    // 2. Monitoring and reporting
+    // ==================== 2. MONITORING AND REPORTING ====================
+    
+    /**
+     * Get status of all charging points at a station
+     */
+    @Transactional(readOnly = true)
     public List<Charger> getStationStatus(Long stationId) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
         try {
-            Query<Charger> query = session.createQuery(
-                "FROM Charger WHERE chargingStation.stationId = :stationId", 
-                Charger.class);
-            query.setParameter("stationId", stationId);
+            List<Charger> points = chargerRepository.findByChargingStationId(stationId);
             
-            List<Charger> points = query.list();
-            
-            System.out.println("Station Status Report:");
+            logger.info("=== STATION STATUS REPORT ===");
             for (Charger point : points) {
-                System.out.println("Point " + point.getPointName() + ": " + point.getStatus() + 
-                                 " (" + point.getPowerCapacity() + " kW, " + point.getConnectorType() + ")");
+                logger.info("Point {}: {} ({} kW, {})", 
+                    point.getPointName(), point.getStatus(), 
+                    point.getPowerCapacity(), point.getConnectorType());
             }
+            logger.info("=============================");
             
             return points;
             
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error getting station status for station: {}", stationId, e);
             return null;
-        } finally {
-            session.close();
         }
     }
     
+    /**
+     * Get all active charging sessions at a station
+     */
+    @Transactional(readOnly = true)
     public List<PhienSac> getActiveSessionsAtStation(Long stationId) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
         try {
-            Query<PhienSac> query = session.createQuery(
-                "FROM PhienSac cs WHERE cs.chargingPoint.chargingStation.stationId = :stationId " +
-                "AND cs.status = :status", 
-                PhienSac.class);
-            query.setParameter("stationId", stationId);
-            query.setParameter("status", SessionStatus.ACTIVE);
+            List<PhienSac> activeSessions = phienSacRepository
+                .findByChargingPointChargingStationIdAndStatus(stationId, SessionStatus.ACTIVE);
             
-            List<PhienSac> activeSessions = query.list();
-            
-            System.out.println("Active sessions at station: " + activeSessions.size());
+            logger.info("Active sessions at station {}: {}", stationId, activeSessions.size());
             return activeSessions;
             
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error getting active sessions for station: {}", stationId, e);
             return null;
-        } finally {
-            session.close();
         }
     }
     
+    /**
+     * Report incident and mark charging point as out of order
+     */
     public boolean reportIncident(Long stationId, Long pointId, String description) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        Transaction transaction = null;
-        
         try {
-            transaction = session.beginTransaction();
+            Charger point = chargerRepository.findById(pointId)
+                .orElseThrow(() -> new ResourceNotFoundException("Charging point not found with id: " + pointId));
             
-            Charger point = session.get(Charger.class, pointId);
-            
-            if (point != null && point.getChargingStation().getId().equals(stationId)) {
-                // Mark point as out of order
-                point.setStatus(PointStatus.OUT_OF_ORDER);
-                session.update(point);
-                
-                transaction.commit();
-                
-                System.out.println("Incident reported for point " + point.getPointName() + ": " + description);
-                System.out.println("Point marked as OUT_OF_ORDER");
-                return true;
+            if (!point.getChargingStation().getId().equals(stationId)) {
+                logger.warn("Point {} does not belong to station {}", pointId, stationId);
+                return false;
             }
             
-            return false;
+            // Mark point as out of order
+            point.setStatus(PointStatus.OUT_OF_ORDER);
+            chargerRepository.save(point);
+            
+            logger.info("Incident reported for point {}: {}", point.getPointName(), description);
+            logger.info("Point marked as OUT_OF_ORDER");
+            return true;
             
         } catch (Exception e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
+            logger.error("Error reporting incident for point: {}", pointId, e);
             return false;
-        } finally {
-            session.close();
         }
     }
     
+    /**
+     * Generate daily report for a station
+     */
+    @Transactional(readOnly = true)
     public void generateDailyReport(Long stationId) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-        
         try {
-            // Get today's sessions
-            Query<PhienSac> query = session.createQuery(
-                "FROM PhienSac cs WHERE cs.chargingPoint.chargingStation.stationId = :stationId " +
-                "AND DATE(cs.startTime) = CURRENT_DATE", 
-                PhienSac.class);
-            query.setParameter("stationId", stationId);
+            LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+            LocalDateTime endOfDay = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59);
             
-            List<PhienSac> todaySessions = query.list();
+            List<PhienSac> todaySessions = phienSacRepository
+                .findByChargingPointChargingStationIdAndStartTimeBetween(stationId, startOfDay, endOfDay);
             
             Double totalRevenue = 0.0;
             Double totalEnergy = 0.0;
@@ -262,17 +261,15 @@ public class CSStaffService {
                 }
             }
             
-            System.out.println("=== DAILY REPORT ===");
-            System.out.println("Date: " + LocalDateTime.now().toLocalDate());
-            System.out.println("Total Sessions: " + todaySessions.size());
-            System.out.println("Total Energy Dispensed: " + totalEnergy + " kWh");
-            System.out.println("Total Revenue: $" + totalRevenue);
-            System.out.println("==================");
+            logger.info("=== DAILY REPORT ===");
+            logger.info("Date: {}", LocalDateTime.now().toLocalDate());
+            logger.info("Total Sessions: {}", todaySessions.size());
+            logger.info("Total Energy Dispensed: {} kWh", totalEnergy);
+            logger.info("Total Revenue: ${}", totalRevenue);
+            logger.info("====================");
             
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            session.close();
+            logger.error("Error generating daily report for station: {}", stationId, e);
         }
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import uth.edu.vn.entity.TramSac;
+import uth.edu.vn.enums.StationStatus;
 
 import java.util.List;
 
@@ -12,6 +13,12 @@ import java.util.List;
 public interface TramSacRepository extends JpaRepository<TramSac, Long> {
     
     List<TramSac> findByStatus(String status);
+    
+    /**
+     * Find stations by status enum (for EVDriverService)
+     */
+    @Query("SELECT t FROM TramSac t WHERE t.status = :status")
+    List<TramSac> findByStatus(@Param("status") StationStatus status);
     
     @Query("SELECT t FROM TramSac t WHERE t.status = 'ONLINE'")
     List<TramSac> findAllOnlineStations();

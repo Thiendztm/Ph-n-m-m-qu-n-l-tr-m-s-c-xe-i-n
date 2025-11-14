@@ -63,10 +63,11 @@ public class Main {
         }
         
         // 2. Create sample subscriptions for admin
-        GoiDichVu adminSubscription = adminService.createUserSubscription(admin, "Admin Premium Plan", 500000.0);
-        if (adminSubscription != null) {
-            System.out.println("✓ Created admin subscription: " + adminSubscription.getPlanName());
-        }
+        // TODO: Restore subscription creation after GoiDichVu repository is implemented
+        // GoiDichVu adminSubscription = adminService.createUserSubscription(admin, "Admin Premium Plan", 500000.0);
+        // if (adminSubscription != null) {
+        //     System.out.println("✓ Created admin subscription: " + adminSubscription.getPlanName());
+        // }
         
         // 3. Create charging stations
         TramSac station1 = adminService.createChargingStation(
@@ -130,13 +131,14 @@ public class Main {
             driverService.addFundsToWallet(driver2.getId(), 150.0);
         }
         
-        // 6. Create sample subscriptions for drivers  
-        if (driver1 != null) {
-            adminService.createUserSubscription(driver1, "Basic Monthly Plan", 100000.0);
-        }
-        if (driver2 != null) {
-            adminService.createUserSubscription(driver2, "Premium VIP Plan", 300000.0);
-        }
+        // 6. Create sample subscriptions for drivers
+        // TODO: Restore subscription creation after GoiDichVu repository is implemented
+        // if (driver1 != null) {
+        //     adminService.createUserSubscription(driver1, "Basic Monthly Plan", 100000.0);
+        // }
+        // if (driver2 != null) {
+        //     adminService.createUserSubscription(driver2, "Premium VIP Plan", 300000.0);
+        // }
         
         // 7. Create sample vehicles for existing drivers
         if (driver1 != null && driver2 != null) {
@@ -166,7 +168,7 @@ public class Main {
             vehicle1.setModel("Model 3");
             vehicle1.setPlateNumber("30A-12345");
             vehicle1.setPlugType("CCS");
-            session.save(vehicle1);
+            session.persist(vehicle1);
             
             // Vehicle for driver2
             Xe vehicle2 = new Xe();
@@ -175,7 +177,7 @@ public class Main {
             vehicle2.setModel("VF8");
             vehicle2.setPlateNumber("51F-67890");
             vehicle2.setPlugType("AC_TYPE2");
-            session.save(vehicle2);
+            session.persist(vehicle2);
             
             transaction.commit();
             System.out.println("✓ Created sample vehicles");
@@ -202,7 +204,7 @@ public class Main {
             notification1.setTitle("Welcome to EV Charging System!");
             notification1.setMessage("Thank you for registering. Your account is now active.");
             notification1.setStatus(NotificationStatus.UNREAD);
-            session.save(notification1);
+            session.persist(notification1);
             
             // System maintenance notification
             ThongBao notification2 = new ThongBao();
@@ -211,7 +213,7 @@ public class Main {
             notification2.setTitle("Scheduled Maintenance Notice");
             notification2.setMessage("Downtown EV Hub will undergo maintenance on Sunday 2-4 AM.");
             notification2.setStatus(NotificationStatus.UNREAD);
-            session.save(notification2);
+            session.persist(notification2);
             
             transaction.commit();
             System.out.println("✓ Created sample notifications");
@@ -237,7 +239,7 @@ public class Main {
             invoice.setTotalAmount(new java.math.BigDecimal("45.50"));
             invoice.setDescription("Charging session at Downtown EV Hub");
             invoice.setIssueDate(java.time.LocalDateTime.now());
-            session.save(invoice);
+            session.persist(invoice);
             
             // Sample report
             BaoCao report = new BaoCao();
@@ -245,7 +247,7 @@ public class Main {
             report.setType(ReportType.MONTHLY_REVENUE);
             report.setGeneratedBy(admin);
             report.setData("{\"totalSessions\": 150, \"totalRevenue\": 12500.00, \"avgSessionDuration\": 45}");
-            session.save(report);
+            session.persist(report);
             
             transaction.commit();
             System.out.println("✓ Created sample invoices and reports");
