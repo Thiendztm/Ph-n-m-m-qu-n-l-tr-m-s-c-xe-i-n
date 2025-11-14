@@ -2,11 +2,11 @@
 
 // Check authentication status and update navbar
 function updateNavbar() {
-    const accessToken = localStorage.getItem('accessToken');
+    const jwt_token = localStorage.getItem('jwt_token');
     const userName = localStorage.getItem('userName');
     const userRole = localStorage.getItem('userRole');
     
-    console.log('updateNavbar called:', { accessToken: !!accessToken, userName, userRole });
+    console.log('updateNavbar called:', { jwt_token: !!jwt_token, userName, userRole });
     
     // Find the login/logout nav item
     const navList = document.querySelector('.nav__list');
@@ -21,7 +21,7 @@ function updateNavbar() {
         return;
     }
     
-    if (accessToken && userName) {
+    if (jwt_token && userName) {
         // User is logged in - show user info and logout
         loginNavItem.innerHTML = `
             <div class="user-menu">
@@ -148,7 +148,7 @@ function updateNavbar() {
 // Logout function
 function logout() {
     // Clear auth data
-    localStorage.removeItem('accessToken');
+    localStorage.removeItem('jwt_token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('userId');
     localStorage.removeItem('userEmail');
@@ -178,7 +178,7 @@ if (document.readyState === 'loading') {
 
 // Update navbar when storage changes (e.g., login from another tab)
 window.addEventListener('storage', function(e) {
-    if (e.key === 'accessToken' || e.key === 'userName') {
+    if (e.key === 'jwt_token' || e.key === 'userName') {
         updateNavbar();
     }
 });

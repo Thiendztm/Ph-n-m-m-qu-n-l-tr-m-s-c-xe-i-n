@@ -129,26 +129,18 @@
         </div>
     </footer>
 
-    <!-- Authentication check script -->
-    <script>
-        // Check if user is already logged in, redirect to dashboard
-        if (localStorage.getItem('accessToken')) {
-            window.location.href = 'dashboard.html';
-        }
-    </script>
-
     <!-- Thêm file JS riêng -->
     <script>
-        // Navbar management inline - for non-logged in users
+        // Navbar management inline
         function updateNavbar() {
-            const accessToken = localStorage.getItem('accessToken');
+            const jwt_token = localStorage.getItem('jwt_token');
             const userName = localStorage.getItem('userName');
             const userRole = localStorage.getItem('userRole');
             
             const navList = document.querySelector('.nav__list');
             const loginNavItem = navList.querySelector('li:last-child');
             
-            if (accessToken && userName) {
+            if (jwt_token && userName) {
                 loginNavItem.innerHTML = `
                     <div style="position: relative; cursor: pointer;">
                         <span style="color: white; display: flex; align-items: center; gap: 8px;">
@@ -202,8 +194,26 @@
         // Also try updating after a short delay (for login redirects)
         setTimeout(updateNavbar, 500);
     </script>
+    
+    <!-- Load map.js first to ensure initMap is available -->
     <script src="./src/js/map.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdiPStX3WkfOkp11UQ0N6g9DjBGCODdNY&callback=initMap&libraries=places"></script>
+    
+    <!-- Ensure initMap is globally available before Google Maps loads -->
+    <script>
+        // Global fallback initMap function in case map.js fails to load
+        if (typeof window.initMap !== 'function') {
+            window.initMap = function() {
+                console.error('Map initialization failed - map.js may not have loaded properly');
+                const mapContainer = document.getElementById('map');
+                if (mapContainer) {
+                    mapContainer.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5; color: #666;">Không thể tải bản đồ</div>';
+                }
+            };
+        }
+    </script>
+    
+    <!-- Load Google Maps API after map.js is ready -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdiPStX3WkfOkp11UQ0N6g9DjBGCODdNY&callback=initMap&libraries=marker,places&loading=async&v=quarterly"></script>
     <script src="./src/js/selects.js"></script>
 </body>
 </html>

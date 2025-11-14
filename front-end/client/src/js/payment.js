@@ -15,8 +15,76 @@ planTitleEl.className = 'detail-item';
 planTitleEl.innerHTML = `<span>Gói sạc:</span> <strong id="selectedPlan">Chưa chọn</strong>`;
 paymentDetails.querySelector('.box__detail-items').prepend(planTitleEl);
 
+// === Wallet Balance Management ===
+function getWalletBalance() {
+    const balance = localStorage.getItem('walletBalance');
+    return balance ? parseFloat(balance) : 0; // Get from localStorage (updated by profile API)
+}
+
+function updateWalletDisplay() {
+    const balance = getWalletBalance();
+    const balanceEl = document.getElementById('walletBalance');
+    if (balanceEl) {
+        balanceEl.textContent = balance.toLocaleString('vi-VN') + 'đ';
+    }
+}
+
+// API call để cập nhật wallet balance trong database
+async function deductWalletBalance(amount) {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        console.error('No auth token found');
+        return false;
+    }
+
+    try {
+        const response = await fetch('/api/profile/wallet', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                amount: amount
+            })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Cập nhật localStorage với số dư mới từ server
+            localStorage.setItem('walletBalance', data.newBalance.toString());
+            updateWalletDisplay();
+            return true;
+        } else {
+            console.error('Wallet update failed:', data.error);
+            return false;
+        }
+    } catch (error) {
+        console.error('Error updating wallet:', error);
+        return false;
+    }
+}
+
+function saveTransaction(amount, method, status) {
+    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    const transaction = {
+        id: Date.now(),
+        amount: amount,
+        method: method,
+        status: status,
+        timestamp: new Date().toISOString(),
+        description: 'Thanh toán phiên sạc EV'
+    };
+    transactions.unshift(transaction); // Thêm vào đầu mảng
+    localStorage.setItem('transactions', JSON.stringify(transactions.slice(0, 100))); // Giữ tối đa 100 giao dịch
+}
+
 // === 2. DOMContentLoaded - Khôi phục dữ liệu + điền thông tin trạm ===
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Load và hiển thị số dư ví ---
+    updateWalletDisplay();
+    
     // --- Điền thông tin trạm sạc từ localStorage ---
     const saved = localStorage.getItem('bookingStation');
     if (!saved) {
@@ -142,7 +210,7 @@ function updateTotalAmount() {
 }
 
 // === 5. Xử lý thanh toán ===
-document.getElementById('paymentForm')?.addEventListener('submit', (e) => {
+document.getElementById('paymentForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const method = document.querySelector('input[name="method"]:checked').value;
@@ -152,14 +220,40 @@ document.getElementById('paymentForm')?.addEventListener('submit', (e) => {
     const total = parseInt(totalEl.textContent.replace(/\D/g, '')) || 0;
 
     if (method === 'ev') {
-        const balance = parseInt(document.getElementById('walletBalance').textContent.replace(/\D/g, '')) || 0;
+        const currentBalance = getWalletBalance();
 
-        if (balance >= total) {
-            alert(`Thanh toán thành công bằng Ví EV!\nĐã trừ: ${total.toLocaleString()}đ\nSố dư còn lại: ${(balance - total).toLocaleString()}đ`);
-            localStorage.setItem('bookingStatus', 'success');
-            window.location.href = 'index.html';
+        if (currentBalance >= total) {
+            // Hiển thị loading
+            const submitBtn = document.querySelector('.btn-pay');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Trừ tiền từ ví qua API
+                const success = await deductWalletBalance(total);
+                if (success) {
+                    const newBalance = getWalletBalance();
+                    alert(`Thanh toán thành công bằng Ví EV!\nĐã trừ: ${total.toLocaleString('vi-VN')}đ\nSố dư còn lại: ${newBalance.toLocaleString('vi-VN')}đ`);
+                    
+                    // Lưu lịch sử giao dịch
+                    saveTransaction(total, 'ev_wallet', 'success');
+                    
+                    localStorage.setItem('bookingStatus', 'success');
+                    window.location.href = 'index.html';
+                } else {
+                    alert('Có lỗi xảy ra khi trừ tiền từ ví! Vui lòng thử lại.');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                alert('Có lỗi xảy ra khi xử lý thanh toán! Vui lòng thử lại.');
+            } finally {
+                // Restore button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
         } else {
-            alert('Số dư ví không đủ!');
+            alert(`Số dư ví không đủ!\nSố dư hiện tại: ${currentBalance.toLocaleString('vi-VN')}đ\nSố tiền cần thanh toán: ${total.toLocaleString('vi-VN')}đ`);
         }
     } else {
         // Thanh toán ngân hàng/thẻ → hiện OTP
