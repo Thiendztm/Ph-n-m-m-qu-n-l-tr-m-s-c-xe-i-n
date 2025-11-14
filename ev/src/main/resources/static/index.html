@@ -28,7 +28,7 @@
                     </a>
                  <i class="fa-solid fa-bars menu_icon" id="menu-icon"></i>
                 <nav class="header__nav">
-                    <ul class="nav__list">
+                    <ul class="nav__list" id="navList">
                         <li class="nav__item">
                             <a class="navbar__link" href="./index.html">
                                 Trang chủ
@@ -44,11 +44,7 @@
                                 Lịch Sử
                             </a>
                         </li>
-                        <li class="nav__item">
-                            <a class="navbar__link" href="./login.html">
-                                Đăng Nhập
-                            </a>
-                        </li>
+                        <!-- Dynamic login/user dropdown will be added by JavaScript -->
                     </ul>
                 </nav>
             </div>
@@ -129,7 +125,10 @@
         </div>
     </footer>
 
+
+
     <!-- Thêm file JS riêng -->
+    <script src="./src/js/navbar.js"></script>
     <script src="./src/js/map.js"></script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdiPStX3WkfOkp11UQ0N6g9DjBGCODdNY&callback=initMap&libraries=places"></script>
     <script src="./src/js/selects.js"></script>

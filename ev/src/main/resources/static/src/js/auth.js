@@ -1,7 +1,6 @@
 
 // ========== CONFIG ==========
-// Use relative URL since frontend is now served by Spring Boot on same domain
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 // ========== DOM ELEMENTS ==========
 const inpUserName = document.querySelector("#username");
@@ -115,22 +114,50 @@ if (registerForm && inpUserName && inpConfirmPwd) {
       return;
     }
 
+    // Parse vehicle info if provided
+    let vehicleModel = '';
+    let vehiclePlate = '';
+    let connectorType = 'Type 2'; // Default
+    
+    if (vehicleInfo) {
+      // Try to parse vehicle info in format: "Model - PlateNumber"
+      // Or just treat it as plate number if no dash
+      if (vehicleInfo.includes(' - ')) {
+        const parts = vehicleInfo.split(' - ');
+        vehicleModel = parts[0].trim();
+        vehiclePlate = parts[1].trim();
+      } else {
+        // Assume it's just the plate number
+        vehiclePlate = vehicleInfo.trim();
+        vehicleModel = 'Unknown';
+      }
+    }
+
     // Call API
     try {
       showMessage("Đang đăng ký...", true);
+
+      const requestData = {
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        phoneNumber: phoneNumber
+      };
+
+      // Add vehicle info if provided
+      if (vehiclePlate) {
+        requestData.vehicleModel = vehicleModel;
+        requestData.vehiclePlate = vehiclePlate;
+        requestData.connectorType = connectorType;
+      }
 
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-          firstName: firstName,
-          lastName: lastName,
-          phoneNumber: phoneNumber
-        })
+        body: JSON.stringify(requestData)
       });
 
       const data = await response.json();
@@ -141,9 +168,9 @@ if (registerForm && inpUserName && inpConfirmPwd) {
         
         showMessage("Đăng ký thành công! Đang chuyển hướng...", true);
         
-        // Redirect to home page after 1.5 seconds
+        // Redirect to login page after 1.5 seconds
         setTimeout(() => {
-          window.location.href = 'index.html';
+          window.location.href = 'login.html';
         }, 1500);
       } else {
         // Handle error from backend

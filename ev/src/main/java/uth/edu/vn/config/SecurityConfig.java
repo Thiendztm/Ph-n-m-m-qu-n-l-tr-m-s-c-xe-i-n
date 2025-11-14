@@ -111,16 +111,26 @@ public class SecurityConfig {
                     "/index.html",            // Home page
                     "/login.html",            // Login page
                     "/register.html",         // Register page
+                    "/profile.html",          // Profile page
+                    "/analytics.html",        // Analytics page
+                    "/payment.html",          // Payment page
                     "/admin/**",              // Admin frontend pages
                     "/staff/**",              // Staff frontend pages
                     "/src/**",                // Static resources (CSS, JS, images)
                     "/api/auth/**",           // Register, login, refresh token
+                    "/api/test/**",           // Test endpoints
+                    "/api/debug/public",      // Debug public endpoint
                     "/api/health",            // Health check
-                    "/api/stations/public/**", // Public station info
+                    "/api/stations/**",       // All station endpoints
                     "/ws/**"                  // WebSocket endpoint
                 ).permitAll()
                 
-                // EV Driver endpoints
+                // Debug endpoints - cần authentication
+                .requestMatchers("/api/debug/auth").authenticated()
+                
+                // EV Driver endpoints - cần authentication
+                .requestMatchers("/api/profile/**").authenticated()
+                .requestMatchers("/api/history/**").authenticated()
                 .requestMatchers("/api/driver/**").hasRole("EV_DRIVER")
                 .requestMatchers("/api/bookings/**").hasRole("EV_DRIVER")
                 .requestMatchers("/api/sessions/**").hasRole("EV_DRIVER")
@@ -152,8 +162,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allowed origins (frontend URLs)
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        // Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is true
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*", 
+            "http://127.0.0.1:*",
+            "https://localhost:*",
+            "https://127.0.0.1:*"
+        ));
         
         // Allowed HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));

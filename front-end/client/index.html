@@ -129,7 +129,79 @@
         </div>
     </footer>
 
+    <!-- Authentication check script -->
+    <script>
+        // Check if user is already logged in, redirect to dashboard
+        if (localStorage.getItem('accessToken')) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+
     <!-- Thêm file JS riêng -->
+    <script>
+        // Navbar management inline - for non-logged in users
+        function updateNavbar() {
+            const accessToken = localStorage.getItem('accessToken');
+            const userName = localStorage.getItem('userName');
+            const userRole = localStorage.getItem('userRole');
+            
+            const navList = document.querySelector('.nav__list');
+            const loginNavItem = navList.querySelector('li:last-child');
+            
+            if (accessToken && userName) {
+                loginNavItem.innerHTML = `
+                    <div style="position: relative; cursor: pointer;">
+                        <span style="color: white; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-user"></i> ${userName}
+                        </span>
+                        <div style="position: absolute; top: 100%; right: 0; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 200px; display: none;" class="user-dropdown">
+                            <a href="./profile.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #333; text-decoration: none; border-bottom: 1px solid #eee;">
+                                <i class="fa-solid fa-user-circle"></i> Hồ sơ
+                            </a>
+                            <a href="#" onclick="logout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #dc3545; text-decoration: none;">
+                                <i class="fa-solid fa-sign-out-alt"></i> Đăng Xuất
+                            </a>
+                        </div>
+                    </div>
+                `;
+                
+                // Add hover effect
+                const userMenu = loginNavItem.querySelector('div');
+                const dropdown = userMenu.querySelector('.user-dropdown');
+                userMenu.addEventListener('mouseenter', () => dropdown.style.display = 'block');
+                userMenu.addEventListener('mouseleave', () => dropdown.style.display = 'none');
+            } else {
+                loginNavItem.innerHTML = `
+                    <a class="navbar__link" href="./login.html">
+                        <i class="fa-solid fa-sign-in-alt"></i> Đăng Nhập
+                    </a>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            alert('Đăng xuất thành công!');
+            window.location.href = 'index.html';
+        }
+
+        // Initialize when DOM loads
+        document.addEventListener('DOMContentLoaded', updateNavbar);
+        if (document.readyState !== 'loading') updateNavbar();
+        
+        // Update navbar when page becomes visible (after redirect from login)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                setTimeout(updateNavbar, 100);
+            }
+        });
+        
+        // Update navbar when localStorage changes (from other tabs or after login)
+        window.addEventListener('storage', updateNavbar);
+        
+        // Also try updating after a short delay (for login redirects)
+        setTimeout(updateNavbar, 500);
+    </script>
     <script src="./src/js/map.js"></script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCdiPStX3WkfOkp11UQ0N6g9DjBGCODdNY&callback=initMap&libraries=places"></script>
     <script src="./src/js/selects.js"></script>

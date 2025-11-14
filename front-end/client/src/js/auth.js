@@ -135,15 +135,16 @@ if (registerForm && inpUserName && inpConfirmPwd) {
       const data = await response.json();
 
       if (response.ok) {
-        // Save auth data
-        saveAuthData(data);
+        // FORCE clear auth data and redirect to login - NO AUTO LOGIN
+        clearAuthData();
         
-        showMessage("Đăng ký thành công! Đang chuyển hướng...", true);
+        // Force redirect immediately without saving any auth data
+        showMessage("Đăng ký thành công! Chuyển đến trang đăng nhập...", true);
         
-        // Redirect to home page after 1.5 seconds
+        // Use location.replace to prevent back navigation and immediate redirect
         setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1500);
+          location.replace('login.html');
+        }, 800);
       } else {
         // Handle error from backend
         showMessage(data.message || "Đăng ký thất bại. Vui lòng thử lại.", false);
@@ -203,6 +204,9 @@ if (loginForm && !inpUserName) { // Login form doesn't have username field
       if (response.ok) {
         // Save auth data
         saveAuthData(data);
+        
+        // Trigger navbar update event
+        window.dispatchEvent(new Event('storage'));
         
         showMessage("Đăng nhập thành công! Đang chuyển hướng...", true);
         

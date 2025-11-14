@@ -25,6 +25,11 @@ public interface XeRepository extends JpaRepository<Xe, Long> {
     List<Xe> findByUserId(Long userId);
     
     /**
+     * Find the first vehicle owned by a user (for profile)
+     */
+    Optional<Xe> findFirstByUserId(Long userId);
+    
+    /**
      * Check if vehicle exists by plate number
      */
     boolean existsByPlateNumber(String plateNumber);

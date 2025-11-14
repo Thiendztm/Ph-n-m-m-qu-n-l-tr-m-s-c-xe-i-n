@@ -124,6 +124,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex, WebRequest request) {
         
+        // DEBUG: Log chi tiết exception
+        System.err.println("=== GLOBAL EXCEPTION CAUGHT ===");
+        System.err.println("Exception type: " + ex.getClass().getName());
+        System.err.println("Message: " + ex.getMessage());
+        System.err.println("Request: " + request.getDescription(false));
+        ex.printStackTrace();
+        
         ErrorResponse errorResponse = new ErrorResponse(
             LocalDateTime.now(),
             HttpStatus.INTERNAL_SERVER_ERROR.value(),

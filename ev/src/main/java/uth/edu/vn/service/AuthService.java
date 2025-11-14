@@ -12,10 +12,12 @@ import uth.edu.vn.dto.auth.AuthResponse;
 import uth.edu.vn.dto.auth.LoginRequest;
 import uth.edu.vn.dto.auth.RegisterRequest;
 import uth.edu.vn.entity.User;
+import uth.edu.vn.entity.Xe;
 import uth.edu.vn.enums.UserRole;
 import uth.edu.vn.exception.BadRequestException;
 import uth.edu.vn.exception.UnauthorizedException;
 import uth.edu.vn.repository.UserRepository;
+import uth.edu.vn.repository.XeRepository;
 import uth.edu.vn.security.JwtTokenProvider;
 
 /**
@@ -29,6 +31,9 @@ public class AuthService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private XeRepository xeRepository;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -63,11 +68,28 @@ public class AuthService {
         // 3. Lưu vào database
         user = userRepository.save(user);
         
-        // 4. Generate JWT tokens
+        // 4. Lưu thông tin xe (nếu có)
+        if (request.getVehiclePlate() != null && !request.getVehiclePlate().trim().isEmpty()) {
+            // Kiểm tra biển số đã tồn tại chưa
+            if (xeRepository.existsByPlateNumber(request.getVehiclePlate())) {
+                throw new BadRequestException("Biển số xe '" + request.getVehiclePlate() + "' đã được đăng ký bởi người dùng khác.");
+            }
+            
+            Xe vehicle = new Xe(
+                user.getId(),
+                request.getVehicleModel() != null ? request.getVehicleModel() : "Unknown",
+                "Unknown", // model
+                request.getVehiclePlate(),
+                request.getConnectorType() != null ? request.getConnectorType() : "Type 2"
+            );
+            xeRepository.save(vehicle);
+        }
+        
+        // 5. Generate JWT tokens
         String accessToken = tokenProvider.generateTokenFromUsername(user.getEmail());
         String refreshToken = tokenProvider.generateRefreshToken(user.getEmail());
         
-        // 5. Trả về AuthResponse
+        // 6. Trả về AuthResponse
         return AuthResponse.builder()
             .accessToken(accessToken)
             .refreshToken(refreshToken)
