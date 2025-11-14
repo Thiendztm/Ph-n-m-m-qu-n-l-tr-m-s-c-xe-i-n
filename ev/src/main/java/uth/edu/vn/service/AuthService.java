@@ -174,4 +174,13 @@ public class AuthService {
             .phoneNumber(user.getPhone())
             .build();
     }
+    
+    /**
+     * Tìm user theo email
+     * Dùng cho getCurrentUser() trong AuthController
+     */
+    @Transactional(readOnly = true)
+    public User findUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
 }

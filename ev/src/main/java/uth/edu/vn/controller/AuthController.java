@@ -57,16 +57,54 @@ public class AuthController {
     }
     
     /**
-     * Test endpoint - check authentication status
+     * Lấy thông tin user hiện tại từ JWT token
      * GET /api/auth/me
      */
     @GetMapping("/me")
-    public ResponseEntity<Map<String, String>> getCurrentUser() {
-        // TODO: Implement get current authenticated user
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Authentication endpoint working");
-        response.put("status", "OK");
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, Object>> getCurrentUser(
+            org.springframework.security.core.Authentication authentication) {
+        try {
+            if (authentication == null || !authentication.isAuthenticated()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Không tìm thấy thông tin xác thực");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+            }
+            
+            // Lấy email từ JWT token trong SecurityContext
+            String email = authentication.getName();
+            
+            // Gọi AuthService để lấy thông tin user đầy đủ
+            uth.edu.vn.entity.User user = authService.findUserByEmail(email);
+            
+            if (user == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Không tìm thấy thông tin người dùng");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+            }
+            
+            // Tạo response với thông tin user
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id", user.getId());
+            userInfo.put("email", user.getEmail());
+            userInfo.put("firstName", user.getFirstName());
+            userInfo.put("lastName", user.getLastName());
+            userInfo.put("fullName", user.getFirstName() + " " + user.getLastName());
+            userInfo.put("phone", user.getPhone());
+            userInfo.put("role", user.getRole().name());
+            userInfo.put("walletBalance", user.getWalletBalance());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("user", userInfo);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Lỗi khi lấy thông tin user: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
     }
     
     /**
