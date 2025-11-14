@@ -30,7 +30,7 @@ public class AdminService {
             
             TramSac station = new TramSac(stationName, address, latitude, longitude);
             
-            session.save(station);
+            session.persist(station);
             transaction.commit();
             
             System.out.println("Charging station created: " + stationName);
@@ -59,7 +59,7 @@ public class AdminService {
             if (station != null) {
                 Charger point = new Charger(pointName, connectorType, powerCapacity, pricePerKwh, station);
                 
-                session.save(point);
+                session.persist(point);
                 transaction.commit();
                 
                 System.out.println("Charging point added: " + pointName + " to station " + station.getName());
@@ -108,7 +108,7 @@ public class AdminService {
             
             if (station != null) {
                 station.setStatus(status.name());
-                session.update(station);
+                session.merge(station);
                 transaction.commit();
                 
                 System.out.println("Station " + station.getName() + " status updated to: " + status);
@@ -139,7 +139,7 @@ public class AdminService {
             
             if (point != null) {
                 point.setStatus(status);
-                session.update(point);
+                session.merge(point);
                 transaction.commit();
                 
                 System.out.println("Charging point " + point.getPointName() + " status updated to: " + status);
@@ -169,7 +169,7 @@ public class AdminService {
             
             GoiDichVu subscription = new GoiDichVu(user, planName, new java.math.BigDecimal(monthlyFee.toString()));
             
-            session.save(subscription);
+            session.persist(subscription);
             transaction.commit();
             
             System.out.println("User subscription created: " + planName + " for user: " + user.getEmail());
@@ -200,7 +200,7 @@ public class AdminService {
             
             User staff = new User(email, password, firstName, lastName, UserRole.CS_STAFF);
             
-            session.save(staff);
+            session.persist(staff);
             transaction.commit();
             
             System.out.println("Staff account created: " + email);

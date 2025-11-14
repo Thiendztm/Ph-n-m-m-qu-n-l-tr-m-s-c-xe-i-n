@@ -37,17 +37,17 @@ public class CSStaffService {
                 walkInVehicle.setUserId(walkInUser.getId());
                 walkInVehicle.setPlateNumber(vehiclePlate);
                 walkInVehicle.setPlugType("Type2"); // Default plug type
-                session.save(walkInVehicle);
+                session.persist(walkInVehicle);
                 
-                session.save(walkInUser);
+                session.persist(walkInUser);
                 
                 PhienSac chargingSession = new PhienSac(walkInUser, point, "STAFF_" + System.currentTimeMillis());
                 
                 // Update charging point status
                 point.setStatus(PointStatus.OCCUPIED);
                 
-                session.save(chargingSession);
-                session.update(point);
+                session.persist(chargingSession);
+                session.merge(point);
                 transaction.commit();
                 
                 System.out.println("Charging session started by staff for vehicle: " + vehiclePlate);
@@ -92,8 +92,8 @@ public class CSStaffService {
                 Charger point = chargingSession.getChargingPoint();
                 point.setStatus(PointStatus.AVAILABLE);
                 
-                session.update(chargingSession);
-                session.update(point);
+                session.merge(chargingSession);
+                session.merge(point);
                 transaction.commit();
                 
                 System.out.println("Charging session stopped. Energy consumed: " + energyConsumed + " kWh, Cost: $" + totalCost);
@@ -131,7 +131,7 @@ public class CSStaffService {
                 
                 payment.setStatus("COMPLETED");
                 
-                session.save(payment);
+                session.persist(payment);
                 transaction.commit();
                 
                 System.out.println("Cash payment processed: $" + chargingSession.getTotalCost());

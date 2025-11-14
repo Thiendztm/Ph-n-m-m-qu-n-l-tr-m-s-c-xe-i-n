@@ -36,7 +36,7 @@ public class EVDriverService {
             User driver = new User(email, password, firstName, lastName, UserRole.EV_DRIVER);
             driver.setPhone(phoneNumber);
             
-            session.save(driver);
+            session.persist(driver);
             transaction.commit();
             
             System.out.println("EV Driver registered successfully: " + email);
@@ -107,7 +107,7 @@ public class EVDriverService {
             if (user != null && user.getRole() == UserRole.EV_DRIVER) {
                 // Create or update vehicle info
                 Xe vehicle = new Xe(userId, vehicleModel.split(" ")[0], vehicleModel, vehiclePlate, "UNKNOWN");
-                session.saveOrUpdate(vehicle);
+                session.merge(vehicle);
                 
                 session.update(user);
                 transaction.commit();
@@ -191,8 +191,8 @@ public class EVDriverService {
                 // Reserve the charging point
                 point.setStatus(PointStatus.RESERVED);
                 
-                session.save(booking);
-                session.update(point);
+                session.persist(booking);
+                session.merge(point);
                 transaction.commit();
                 
                 System.out.println("Booking created successfully for user: " + user.getEmail());
@@ -229,8 +229,8 @@ public class EVDriverService {
                 // Update charging point status
                 point.setStatus(PointStatus.OCCUPIED);
                 
-                session.save(chargingSession);
-                session.update(point);
+                session.persist(chargingSession);
+                session.merge(point);
                 transaction.commit();
                 
                 System.out.println("Charging session started with QR Code: " + qrCode);
@@ -261,7 +261,7 @@ public class EVDriverService {
             User user = session.get(User.class, userId);
             if (user != null) {
                 user.addFunds(java.math.BigDecimal.valueOf(amount));
-                session.update(user);
+                session.merge(user);
                 transaction.commit();
                 
                 System.out.println("Added $" + amount + " to wallet. New balance: $" + user.getWalletBalance());
@@ -301,13 +301,13 @@ public class EVDriverService {
                         return null;
                     }
                     user.setWalletBalance(user.getWalletBalance().subtract(java.math.BigDecimal.valueOf(amount)));
-                    session.update(user);
+                    session.merge(user);
                 }
                 
                 ThanhToan payment = new ThanhToan(chargingSession.getSessionId(), java.math.BigDecimal.valueOf(amount), paymentMethod.name());
                 payment.setStatus("COMPLETED");
                 
-                session.save(payment);
+                session.persist(payment);
                 transaction.commit();
                 
                 System.out.println("Payment processed successfully: $" + amount);

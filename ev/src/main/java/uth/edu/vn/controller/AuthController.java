@@ -9,7 +9,7 @@ import uth.edu.vn.dto.auth.LoginRequest;
 import uth.edu.vn.dto.auth.RegisterRequest;
 import uth.edu.vn.service.AuthService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 

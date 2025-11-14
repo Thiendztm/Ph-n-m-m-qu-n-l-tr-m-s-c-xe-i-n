@@ -1,6 +1,6 @@
 package uth.edu.vn.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import uth.edu.vn.enums.BookingStatus;
 
