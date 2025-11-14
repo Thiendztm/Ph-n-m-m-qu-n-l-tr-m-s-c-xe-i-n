@@ -1,0 +1,72 @@
+:root{
+    --color-price:#5D866C;
+     --color-btn:#41A67E;
+     --color-white:#fff;
+    --color-danger:#c80036;
+    --color-grey:#5c5c5e;
+    --color-grey-light:#dcdcdc;
+    --color-black:#000;
+}
+html{
+    font-family: "Inter", sans-serif;
+    
+}
+.container {
+    width: 1170px;
+    max-width: calc(1170 - 48px);/*Khi chieu dai cua trang web nho hon 1170 thi giup cho trang le trai va phai co kc 24px*/
+    margin: 0 auto;/*can giua*/
+}
+a {
+    text-decoration: none;
+}
+
+.btn-primary{
+    background: var(--color-btn);
+    border: none;
+}
+.btn-primary:hover{
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.btn-cancle{
+    color: var(--color-white);
+}
+.logo-img {
+    max-width: 200px;
+}
+.page-wrapper {
+    min-height: 100vh;
+}
+.rounded-sm {
+ border-radius: 4px;
+}
+.rounded-md {
+ border-radius: 5px;
+}
+.shadow-md{
+ box-shadow: rgba(0,0,0,0.15) 0 2px 8px;
+}
+
+/* CSS cho nút đăng xuất */
+.logout-btn {
+    background: none;
+    border: none;
+    color: var(--color-black);
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    background-color: #f0f0f0;
+}
+
+.logout-btn i {
+    font-size: 16px;
+}
