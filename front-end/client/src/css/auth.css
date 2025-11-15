@@ -44,7 +44,23 @@ body{
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 1.25rem; /* 20px -> rem */
+    padding: 1.25rem;
+    
+    /* === Cải tiến 3D và Animation Base === */
+    perspective: 1000px; /* Thêm phối cảnh cho hiệu ứng 3D */
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transition mượt mà */
+}
+
+/* Tùy chọn: Thêm hiệu ứng 3D nhẹ nhàng khi không hoạt động */
+.auth-container {
+    /* Tạo cảm giác hơi nghiêng vào người dùng */
+    transform: rotateX(1deg) rotateY(0.5deg); 
+}
+
+/* Tùy chọn: Thêm hiệu ứng tương tác (chủ yếu hữu ích khi container có nhiều form) */
+/* Ví dụ khi container được hover, nó sẽ trở nên phẳng hơn (ít nghiêng hơn) */
+.auth-container:hover {
+    transform: rotateX(0deg) rotateY(0deg); 
 }
 
 /* Authentication Form Box (col-md-6) */
