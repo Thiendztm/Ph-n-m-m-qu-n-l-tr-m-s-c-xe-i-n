@@ -36,6 +36,55 @@ let map;
 let markers = [];
 let isMapLoaded = false;
 
+// API Configuration
+const API_BASE_URL = 'http://localhost:8080/api';
+
+// Load stations from backend API
+async function loadStationsFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/stations`);
+        const data = await response.json();
+        
+        if (data.success && data.stations) {
+            // Convert API response to tram objects
+            return data.stations.map(station => {
+                // Find first available charger for display
+                const firstCharger = station.chargers && station.chargers.length > 0 
+                    ? station.chargers[0] 
+                    : null;
+                
+                return new tram(
+                    station.name,
+                    station.latitude,
+                    station.longitude,
+                    firstCharger?.connectorType || 'Type 2',
+                    station.availableChargers > 0 ? 'available' : 'occupied',
+                    firstCharger?.powerCapacity || 50,
+                    firstCharger?.pricePerKwh || 3500,
+                    station.address,
+                    '0km' // Distance will be calculated if user shares location
+                );
+            });
+        } else {
+            console.warn('No stations found, using fallback data');
+            return getFallbackStations();
+        }
+    } catch (error) {
+        console.error('Error loading stations from API:', error);
+        console.warn('Using fallback station data');
+        return getFallbackStations();
+    }
+}
+
+// Fallback stations if API fails
+function getFallbackStations() {
+    return [
+        new tram("Trạm sạc Bình Thạnh 1", 10.8231, 106.6297, "CCS", "available", 50, 3500, "123 Nguyễn Văn Cừ, Bình Thạnh, TP.HCM", "1.2km"),
+        new tram("Trạm sạc Quận 1", 10.7769, 106.7009, "AC", "available", 75, 4000, "789 Nguyễn Huệ, Q.1, TP.HCM", "2.1km"),
+        new tram("Trạm Sạc Sài Gòn 3", 10.770, 106.690, "CHAdeMO", "available", 100, 2500, "3 Pasteur, Q.1, TP.HCM", "0.8km")
+    ];
+}
+
 // Main initialization function
 async function initMap() {
     console.log('initMap called');
@@ -65,13 +114,9 @@ async function initMap() {
             ]
         });
 
-        // Tạo các trạm sạc mẫu
-        const stations = [
-            new tram("Trạm sạc Bình Thạnh 1", 10.8231, 106.6297, "CCS", "available", 50, 3500, "123 Nguyễn Văn Cừ, Bình Thạnh, TP.HCM", "1.2km"),
-            new tram("Trạm sạc Quận 1", 10.7769, 106.7009, "AC", "available", 75, 4000, "789 Nguyễn Huệ, Q.1, TP.HCM", "2.1km"),
-            new tram("Trạm Sạc Sài Gòn 3", 10.770, 106.690, "CHAdeMO", "available", 100, 2500, "3 Pasteur, Q.1, TP.HCM", "0.8km")
-        ];
-
+        // Load stations from API
+        const stations = await loadStationsFromAPI();
+        
         const infowindow = new google.maps.InfoWindow({ content: "", maxWidth: 320 });
         
         stations.forEach((station) => {
@@ -289,51 +334,197 @@ function filterMarkers(stations) {
 }
 
 // Bắt đầu đặt chỗ
-function startBooking(stationId) {
+async function startBooking(stationId) {
+    const token = localStorage.getItem('jwt_token');
+    
+    if (!token) {
+        if (confirm('Bạn cần đăng nhập để đặt chỗ. Chuyển đến trang đăng nhập?')) {
+            window.location.href = 'login.html?redirect=index.html';
+        }
+        return;
+    }
+
     const entry = markers.find(m => m.station.id === stationId);
     if (!entry || entry.station.status === 'busy') {
         alert("Trạm đang bận hoặc không tồn tại!");
         return;
     }
 
-    const s = entry.station;
-    const bookingInfo = {
-        id: s.id,
-        name: s.name,
-        address: s.address,
-        connector: s.connector,
-        power: s.power,
-        price: s.price,
-        distance: s.distance,
-        connectorDisplay: `${s.connector} - ${s.power}kW`,
-        priceDisplay: `${s.price.toLocaleString()}đ/kWh`
-    };
-
-    localStorage.setItem('bookingStation', JSON.stringify(bookingInfo));
-    localStorage.setItem('bookingStatus', 'pending');
-    window.location.href = 'payment.html';
+    // Show booking modal
+    showBookingModal(entry.station);
 }
 
-// Áp dụng đặt chỗ thành công khi quay lại
-function applyBookingFromStorage() {
-    const status = localStorage.getItem('bookingStatus');
-    const saved = localStorage.getItem('bookingStation');
-    if (status === 'success' && saved) {
-        try {
-            const station = JSON.parse(saved);
-            const entry = markers.find(m => m.station.id === station.id);
-            if (entry && entry.station.status === 'available') {
-                entry.station.capNhatTrangThai('busy');
+// Show booking modal
+function showBookingModal(station) {
+    const modal = document.createElement('div');
+    modal.id = 'bookingModal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+
+    const now = new Date();
+    const minTime = new Date(now.getTime() + 30 * 60000); // 30 minutes from now
+    const maxTime = new Date(now.getTime() + 24 * 60 * 60000); // 24 hours from now
+
+    modal.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 24px; font-weight: 700;">Đặt chỗ</h2>
+                <button onclick="closeBookingModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 600;">${station.name}</h3>
+                <p style="margin: 5px 0; color: #666;"><i class="fa-solid fa-location-dot"></i> ${station.address}</p>
+                <p style="margin: 5px 0; color: #666;"><i class="fa-solid fa-bolt"></i> ${station.connector} - ${station.power}kW</p>
+                <p style="margin: 5px 0; color: #666;"><i class="fa-solid fa-coins"></i> ${station.price}đ/kWh</p>
+            </div>
+
+            <form id="bookingForm">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                        Thời gian đặt chỗ
+                    </label>
+                    <input 
+                        type="datetime-local" 
+                        id="bookingTime" 
+                        name="bookingTime"
+                        required
+                        min="${minTime.toISOString().slice(0, 16)}"
+                        max="${maxTime.toISOString().slice(0, 16)}"
+                        value="${minTime.toISOString().slice(0, 16)}"
+                        style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;"
+                    />
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        Tối thiểu 30 phút từ bây giờ, tối đa 24 giờ
+                    </small>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                        Thời gian dự kiến sạc (phút)
+                    </label>
+                    <input 
+                        type="number" 
+                        id="duration" 
+                        name="duration"
+                        min="15"
+                        max="480"
+                        value="60"
+                        required
+                        style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;"
+                    />
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        Từ 15 phút đến 8 giờ
+                    </small>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                        Ghi chú (tùy chọn)
+                    </label>
+                    <textarea 
+                        id="notes" 
+                        name="notes"
+                        rows="3"
+                        placeholder="Ví dụ: Tôi sẽ đến muộn 5 phút..."
+                        style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; resize: vertical;"
+                    ></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button 
+                        type="button" 
+                        onclick="closeBookingModal()"
+                        style="flex: 1; padding: 15px; background: #e0e0e0; color: #333; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;"
+                    >
+                        Hủy
+                    </button>
+                    <button 
+                        type="submit"
+                        style="flex: 1; padding: 15px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;"
+                    >
+                        Xác nhận đặt chỗ
+                    </button>
+                </div>
+            </form>
+
+            <div id="bookingError" style="display: none; margin-top: 15px; padding: 12px; background: #ffebee; color: #c62828; border-radius: 8px; border-left: 4px solid #f44336;"></div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Handle form submission
+    document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await submitBooking(station.id);
+    });
+}
+
+// Close booking modal
+function closeBookingModal() {
+    const modal = document.getElementById('bookingModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Submit booking
+async function submitBooking(stationId) {
+    const bookingTime = document.getElementById('bookingTime').value;
+    const duration = document.getElementById('duration').value;
+    const notes = document.getElementById('notes').value;
+    const token = localStorage.getItem('jwt_token');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/stations/${stationId}/reserve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                reservationTime: bookingTime,
+                estimatedDuration: parseInt(duration),
+                notes: notes
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            closeBookingModal();
+            alert('Đặt chỗ thành công! Bạn có thể xem chi tiết trong mục Lịch sử.');
+            
+            // Optionally reload stations to update availability
+            if (map) {
+                const stations = await loadStationsFromAPI();
                 updateStationList();
             }
-        } catch (e) { 
-            console.error(e); 
+        } else {
+            document.getElementById('bookingError').style.display = 'block';
+            document.getElementById('bookingError').textContent = data.message || 'Không thể đặt chỗ. Vui lòng thử lại.';
         }
+    } catch (error) {
+        console.error('Error booking station:', error);
+        document.getElementById('bookingError').style.display = 'block';
+        document.getElementById('bookingError').textContent = 'Lỗi kết nối. Vui lòng thử lại.';
     }
-    // Dọn dẹp
-    localStorage.removeItem('bookingStatus');
-    localStorage.removeItem('bookingStation');
 }
+
+// Make functions globally available
+window.startBooking = startBooking;
+window.closeBookingModal = closeBookingModal;
 
 // Expose global functions
 if (typeof window !== 'undefined') {
