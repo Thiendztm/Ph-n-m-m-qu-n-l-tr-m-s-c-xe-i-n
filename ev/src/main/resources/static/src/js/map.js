@@ -214,8 +214,17 @@ async function initMap() {
         console.log('✅ Leaflet Map loaded successfully');
 
         // Load stations from API
-        const stations = await loadStationsFromAPI();
-        console.log(`📍 Loaded ${stations.length} stations`);
+        let stations = await loadStationsFromAPI();
+        console.log(`📍 Loaded ${stations.length} stations (tổng)`);
+
+        // === Chỉ hiển thị các trạm có thể đặt chỗ (availableChargers > 0) (đã sửa) ===
+        const bookableStations = stations.filter(s => (s.availableChargers || 0) > 0);
+        if (bookableStations.length) {
+            console.log(`✅ Hiển thị ${bookableStations.length} trạm có thể đặt chỗ`);
+            stations = bookableStations;
+        } else {
+            console.warn('⚠️ Không có trạm khả dụng nào – hiển thị toàn bộ');
+        }
 
         // Create markers for each station
         const bounds = [];
@@ -546,9 +555,9 @@ function showBookingModal(station) {
     const maxTime = new Date(now.getTime() + 24 * 60 * 60000);
 
     modal.innerHTML = `
-        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%; font-family: 'Inter', sans-serif;">
+        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%; font-family: 'Inter', sans-serif; color:#0f172a;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0; font-size: 24px; font-weight: 700;">Đặt chỗ</h2>
+                <h2 style="margin: 0; font-size: 24px; font-weight: 700; color:#0f172a;">Đặt chỗ</h2>
                 <button onclick="closeBookingModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
             </div>
             
