@@ -12,25 +12,28 @@ import java.util.List;
 
 @Repository
 public interface ChargerRepository extends JpaRepository<Charger, Long> {
-    
+
     List<Charger> findByChargingStationId(Long stationId);
-    
+
     List<Charger> findByStatus(PointStatus status);
-    
+
+    // Spring Data JPA tự động tạo truy vấn cho các phương thức này
+    List<Charger> findByChargingStationIdIn(List<Long> chargingStationIds);
+
     @Query("SELECT c FROM Charger c WHERE c.chargingStation.id = :stationId AND c.status = :status")
     List<Charger> findByStationAndStatus(@Param("stationId") Long stationId, @Param("status") PointStatus status);
-    
+
     @Query("SELECT c FROM Charger c WHERE c.connectorType = :connectorType AND c.status = 'AVAILABLE'")
     List<Charger> findAvailableChargersByType(@Param("connectorType") ConnectorType connectorType);
-    
+
     @Query("SELECT COUNT(c) FROM Charger c WHERE c.chargingStation.id = :stationId AND c.status = 'AVAILABLE'")
     Long countAvailableChargersByStation(@Param("stationId") Long stationId);
-    
+
     /**
      * Count charging points by status (for AdminService system overview)
      */
     Long countByStatus(PointStatus status);
-    
+
     /**
      * Find charging points by station and status (for EVDriverService)
      */
