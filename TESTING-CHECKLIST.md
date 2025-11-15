@@ -12,8 +12,11 @@
 ## 🎯 Testing Strategy
 
 ### Phase 1: Component Testing (Individual Pages)
-### Phase 2: Integration Testing (API Connections)  
+
+### Phase 2: Integration Testing (API Connections)
+
 ### Phase 3: User Journey Testing (E2E Flows)
+
 ### Phase 4: Cross-browser & Responsive Testing
 
 ---
@@ -21,6 +24,7 @@
 ## 📱 Phase 1: Component Testing
 
 ### 1.1 Driver Registration & Login ✓
+
 - [ ] **register.html** - Form validation (email format, password strength)
 - [ ] **register.html** - Submit to `/auth/register` API
 - [ ] **login.html** - Login with valid credentials
@@ -29,6 +33,7 @@
 - [ ] Redirect to `index.html` after login
 
 **Test Data:**
+
 ```
 Email: testdriver@example.com
 Password: Test@123456
@@ -37,29 +42,34 @@ Phone: 0912345678
 ```
 
 ### 1.2 Staff Login ✓
+
 - [ ] **staff/login.html** - Modern gradient design loads correctly
 - [ ] Login with staff credentials
 - [ ] Redirect to `staff/index.html`
 - [ ] Session stored with `userRole=staff`
 
 **Test Data:**
+
 ```
 Username: staff001
 Password: Staff@123
 ```
 
 ### 1.3 Admin Login ✓
+
 - [ ] **admin/login.html** - Login with admin credentials
 - [ ] Redirect to `admin/index.html` dashboard
 - [ ] Access to admin-only features
 
 **Test Data:**
+
 ```
 Username: admin
 Password: Admin@123
 ```
 
 ### 1.4 Driver Profile ✓
+
 - [ ] **profile.html** - Load user info from database
 - [ ] Display: Name, Email, Phone, Vehicle info
 - [ ] Display wallet balance (format: 125,000đ)
@@ -67,12 +77,14 @@ Password: Admin@123
 - [ ] Avatar upload (if implemented)
 
 ### 1.5 Navigation Bar ✓
+
 - [ ] **navbar.js** - Loads on all driver pages
 - [ ] User dropdown shows: Profile, Lịch Sử, Đăng Xuất
 - [ ] Logout clears localStorage and redirects to login
 - [ ] Mobile hamburger menu works (< 768px)
 
 ### 1.6 Station Map & Booking ✓
+
 - [ ] **index.html** - Google Maps loads with station markers
 - [ ] Click station → Show info popup
 - [ ] "Đặt chỗ" button → Opens booking modal
@@ -80,6 +92,7 @@ Password: Admin@123
 - [ ] API call to `/stations/{id}/reserve`
 
 ### 1.7 QR Scanner ✓
+
 - [ ] **qr-scanner.html** - Camera permission prompt
 - [ ] Camera dropdown lists available cameras
 - [ ] Torch/flash toggle (if device supports)
@@ -88,6 +101,7 @@ Password: Admin@123
 - [ ] Error handling for invalid QR
 
 ### 1.8 Payment Page ✓
+
 - [ ] **payment.html** - Display 3 subscription plans
 - [ ] Gói Linh Hoạt: 3,500đ/kWh
 - [ ] Gói Tháng: 1,000,000đ/tháng (35 lượt)
@@ -97,6 +111,7 @@ Password: Admin@123
 - [ ] Process payment via API
 
 ### 1.9 Charging History ✓
+
 - [ ] **charging-history.html** - Load session list
 - [ ] Display: Date, Station, Energy (kWh), Cost, Status
 - [ ] Stats cards: Total sessions, Total energy, Avg cost
@@ -106,6 +121,7 @@ Password: Admin@123
 - [ ] Click session → Navigate to detail page
 
 ### 1.10 Session Detail ✓
+
 - [ ] **session-detail.html** - Load specific session
 - [ ] Display: Station info, Charger type, Duration
 - [ ] SOC progress bar (0% → 100%)
@@ -115,6 +131,7 @@ Password: Admin@123
 - [ ] Download invoice PDF
 
 ### 1.11 Subscription Plans ✓
+
 - [ ] **subscription-plans.html** - Display 3 plan cards
 - [ ] Current plan highlighted with badge
 - [ ] Comparison table with 6 features
@@ -123,6 +140,7 @@ Password: Admin@123
 - [ ] API: `/admin/subscriptions/create`
 
 ### 1.12 Wallet Top-up ✓
+
 - [ ] **wallet-topup.html** - Display current balance
 - [ ] 6 quick amount buttons (50K-2M)
 - [ ] Custom amount input (min 10,000đ)
@@ -133,6 +151,7 @@ Password: Admin@123
 - [ ] Transaction history list
 
 ### 1.13 Staff Dashboard ✓
+
 - [ ] **staff/index.html** - View assigned stations
 - [ ] Start/stop charging sessions manually
 - [ ] Handle cash payments (thanh toán tại chỗ)
@@ -140,6 +159,7 @@ Password: Admin@123
 - [ ] Report incidents (báo cáo sự cố)
 
 ### 1.14 Admin Dashboard ✓
+
 - [ ] **admin/index.html** - View all stations
 - [ ] User management: View, Edit, Delete users
 - [ ] Station management: Add, Edit stations
@@ -152,6 +172,7 @@ Password: Admin@123
 ## 🔗 Phase 2: API Integration Testing
 
 ### 2.1 Authentication APIs
+
 - [ ] `POST /auth/register` - Create new driver account
 - [ ] `POST /auth/login` - Login and receive JWT token
 - [ ] `POST /auth/refresh` - Refresh expired token
@@ -160,6 +181,7 @@ Password: Admin@123
 - [ ] 403 handling → Show "Access Denied"
 
 ### 2.2 Driver APIs
+
 - [ ] `GET /driver/profile` - Get user details
 - [ ] `PUT /driver/profile` - Update profile info
 - [ ] `GET /driver/wallet` - Get wallet balance
@@ -169,6 +191,7 @@ Password: Admin@123
 - [ ] `GET /driver/monthly-report` - Get statistics
 
 ### 2.3 Station APIs
+
 - [ ] `GET /stations` - Get all stations with filters
 - [ ] `GET /stations/{id}` - Get station details
 - [ ] `GET /stations/{id}/chargers` - Get available chargers
@@ -176,12 +199,14 @@ Password: Admin@123
 - [ ] `GET /stations/nearby?lat={lat}&lng={lng}` - Find nearby
 
 ### 2.4 Charging Session APIs
+
 - [ ] `POST /sessions/start` - Start charging via QR scan
 - [ ] `GET /sessions/{id}` - Get session status
 - [ ] `POST /sessions/{id}/stop` - Stop charging
 - [ ] `GET /sessions/{id}/realtime` - Get SOC% updates (WebSocket?)
 
 ### 2.5 Payment APIs
+
 - [ ] `POST /payment/process` - Process payment
 - [ ] `GET /payment/methods` - Get available methods
 - [ ] `POST /payment/wallet` - Pay with wallet
@@ -189,6 +214,7 @@ Password: Admin@123
 - [ ] `POST /payment/invoice/{sessionId}` - Generate invoice
 
 ### 2.6 Admin APIs
+
 - [ ] `GET /admin/users` - Get all users
 - [ ] `POST /admin/users` - Create user
 - [ ] `PUT /admin/users/{id}` - Update user
@@ -200,6 +226,7 @@ Password: Admin@123
 - [ ] `GET /admin/reports/revenue` - Get revenue data
 
 ### 2.7 Staff APIs
+
 - [ ] `GET /staff/stations` - Get assigned stations
 - [ ] `POST /staff/sessions/{id}/start` - Manual start
 - [ ] `POST /staff/sessions/{id}/stop` - Manual stop
@@ -211,6 +238,7 @@ Password: Admin@123
 ## 🚶 Phase 3: User Journey Testing (E2E)
 
 ### Journey 1: New Driver Registration → First Charge
+
 1. [ ] Open `register.html` in browser
 2. [ ] Fill registration form with test data
 3. [ ] Submit → Check database for new user
@@ -238,6 +266,7 @@ Password: Admin@123
 **Expected Result:** Complete flow without errors, data persists across pages.
 
 ### Journey 2: Staff Assisting Driver
+
 1. [ ] Staff login at `staff/login.html`
 2. [ ] View assigned stations dashboard
 3. [ ] Driver arrives without smartphone
@@ -251,6 +280,7 @@ Password: Admin@123
 **Expected Result:** Staff can operate independently of driver actions.
 
 ### Journey 3: Admin Managing System
+
 1. [ ] Admin login at `admin/login.html`
 2. [ ] Navigate to User Management
 3. [ ] Search for test driver account
@@ -269,6 +299,7 @@ Password: Admin@123
 **Expected Result:** Admin has full control, changes reflect immediately.
 
 ### Journey 4: Session Persistence Testing
+
 1. [ ] Login as driver
 2. [ ] Start browsing `index.html`
 3. [ ] Press F5 (refresh) → Still logged in
@@ -288,6 +319,7 @@ Password: Admin@123
 ## 📱 Phase 4: Cross-browser & Responsive Testing
 
 ### 4.1 Browser Compatibility
+
 - [ ] **Chrome** (v120+): All pages render correctly
 - [ ] **Firefox** (v121+): All pages render correctly
 - [ ] **Edge** (v120+): All pages render correctly
@@ -296,6 +328,7 @@ Password: Admin@123
 - [ ] **Safari Mobile** (iOS): Touch interactions work
 
 ### 4.2 Responsive Design Breakpoints
+
 - [ ] **Desktop** (1920x1080): Full layout with sidebars
 - [ ] **Laptop** (1366x768): Compact layout, all visible
 - [ ] **Tablet Portrait** (768x1024): Single column, stacked
@@ -303,6 +336,7 @@ Password: Admin@123
 - [ ] **Mobile Landscape** (667x375): Horizontal scroll handled
 
 ### 4.3 Device-Specific Features
+
 - [ ] **Camera Access** (Mobile): QR scanner uses rear camera
 - [ ] **Torch/Flash** (Mobile): Toggle works on supported devices
 - [ ] **Geolocation** (Mobile): Map centers on current location
@@ -310,6 +344,7 @@ Password: Admin@123
 - [ ] **Push Notifications** (Mobile): Charging complete alert
 
 ### 4.4 Performance Testing
+
 - [ ] Page load time < 3 seconds (3G network)
 - [ ] API response time < 500ms (local backend)
 - [ ] No console errors in DevTools
@@ -321,22 +356,27 @@ Password: Admin@123
 ## 🐛 Known Issues & Fixes
 
 ### Issue 1: Token Expiration Handling
+
 **Problem:** JWT token expires after 1 hour, user not redirected to login.  
 **Fix:** Add token refresh logic in `api-client.js`.
 
 ### Issue 2: WebSocket Connection Lost
+
 **Problem:** Real-time SOC updates stop if WebSocket disconnects.  
 **Fix:** Implement reconnection logic with exponential backoff.
 
 ### Issue 3: QR Scanner Camera Permission
+
 **Problem:** Browser blocks camera on insecure HTTP.  
 **Fix:** Deploy frontend on HTTPS or use `localhost` for testing.
 
 ### Issue 4: Map Not Loading
+
 **Problem:** Google Maps API key missing or invalid.  
 **Fix:** Add valid API key in `map.js`.
 
 ### Issue 5: Mock Data vs Real API
+
 **Problem:** Some pages use mock data when backend is down.  
 **Fix:** Expected behavior, but show warning banner to user.
 
@@ -344,15 +384,15 @@ Password: Admin@123
 
 ## 📊 Test Results Summary
 
-| Component | Status | Pass Rate | Issues Found |
-|-----------|--------|-----------|--------------|
-| Driver Pages | ✅ | 100% | 0 |
-| Staff Pages | ✅ | 100% | 0 |
-| Admin Pages | ✅ | 100% | 0 |
-| API Integration | ⏳ | 90% | Token refresh needed |
-| E2E Flows | ⏳ | 85% | WebSocket reconnect |
-| Responsive Design | ✅ | 100% | 0 |
-| Browser Compat | ✅ | 95% | Safari iOS minor CSS |
+| Component         | Status | Pass Rate | Issues Found         |
+| ----------------- | ------ | --------- | -------------------- |
+| Driver Pages      | ✅     | 100%      | 0                    |
+| Staff Pages       | ✅     | 100%      | 0                    |
+| Admin Pages       | ✅     | 100%      | 0                    |
+| API Integration   | ⏳     | 90%       | Token refresh needed |
+| E2E Flows         | ⏳     | 85%       | WebSocket reconnect  |
+| Responsive Design | ✅     | 100%      | 0                    |
+| Browser Compat    | ✅     | 95%       | Safari iOS minor CSS |
 
 **Overall Status:** 🟢 **95% Complete** - Ready for production with minor fixes.
 
@@ -386,6 +426,7 @@ Before deploying to production:
 **Findings:** All core features work correctly. Minor UX improvements needed for mobile Safari.
 
 **Next Steps:**
+
 1. Fix token refresh in `api-client.js`
 2. Add WebSocket reconnection logic in `data-flow.js`
 3. Test on iOS devices (Safari)
@@ -398,7 +439,6 @@ Before deploying to production:
 **Developer:** ✓ All tasks completed (1-10)  
 **QA Tester:** ⏳ Pending final review  
 **Project Manager:** ⏳ Pending acceptance  
-**Client:** ⏳ Pending UAT  
+**Client:** ⏳ Pending UAT
 
 **Project Status:** 🎉 **READY FOR PRODUCTION**
-
