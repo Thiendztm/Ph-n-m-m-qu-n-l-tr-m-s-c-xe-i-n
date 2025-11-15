@@ -1,106 +1,219 @@
-body{
-	background: linear-gradient(135deg, #0F172A, #1E293B);
-	background-size:cover;
-	background-position: center;
-	background-repeat:  repeat;
-	min-height: 100vh;
+/* Animation Keyframes */
+@keyframes backgroundPan {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
+@keyframes fadeInScaleUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
+
+/* Variables for consistency */
+:root {
+    --transition-speed: 0.3s;
+    --transition-easing: ease-in-out;
+    --icon-size: 1.125rem; /* 18px, tăng nhẹ kích thước icon */
+    --icon-color-active: var(--color-btn); /* Màu icon khi active */
+}
+
+/* Global & Body Styles */
+body{
+    /* Sử dụng background-size lớn hơn để tạo hiệu ứng chuyển động mượt mà hơn */
+    background: linear-gradient(135deg, #0F172A, #1E293B, #0F172A);
+    background-size: 400% 400%; /* Mở rộng kích thước background */
+    background-position: center;
+    background-repeat: repeat;
+    min-height: 100vh;
+    overflow-x: hidden; /* Ngăn cuộn ngang */
+    
+    /* Áp dụng animation nền */
+    animation: backgroundPan 30s ease infinite; 
+}
+
+/* Auth Container Layout */
 .auth-container {
-	min-height: 100vh;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.25rem; /* 20px -> rem */
 }
+
+/* Authentication Form Box (col-md-6) */
 .col-md-6 {
-	background: #F5F5F5 ;
-	border-radius: 10px;
-	padding: 40px;
-	max-width: 450px;
-	width: 100%;
+    --auth-bg: #F5F5F5;
+    background: var(--auth-bg);
+    border-radius: 0.625rem; /* 10px -> rem */
+    padding: 2.5rem; /* 40px -> rem */
+    max-width: 28.125rem; /* 450px -> rem */
+    width: 100%;
+    
+    /* Hiệu ứng bóng đổ 3D nhẹ */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2), 0 0 5px rgba(0, 0, 0, 0.1);
+    
+    /* Animation khi box xuất hiện */
+    animation: fadeInScaleUp 0.8s ease-out forwards;
 }
+
+/* Logo Link/Container */
 .logo-container {
-	background: #878787;
-	text-align: center;
-	color: var(--color-white);
-	text-decoration: none;
-	font-size: 20px;
-	position: absolute;
-	top:10px;
-	left: 10px;
-	padding: 10px 20px;
-	border-radius: 10px; 
-	opacity: 0.5;
-	transition: ease 0.3s;
+    --logo-bg: #878787;
+    background: var(--logo-bg);
+    text-align: center;
+    color: var(--color-white);
+    text-decoration: none;
+    font-size: 1.25rem; /* 20px -> rem */
+    position: absolute;
+    top: 0.625rem; /* 10px -> rem */
+    left: 0.625rem; /* 10px -> rem */
+    padding: 0.625rem 1.25rem; /* 10px 20px -> rem */
+    border-radius: 0.625rem; /* 10px -> rem */
+    opacity: 0.6; /* Tăng nhẹ độ mờ mặc định */
+    transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.2s ease-out; /* Easing hiện đại hơn */
+    z-index: 10;
 }
 .logo-container:hover{
-  opacity: 1;
-}
-.section__heading{
-	text-align: center;
-	font-size: 40px;
-	color: var(--color-black);
-	font-weight: 700;
-	text-transform: uppercase;
-	margin-bottom: 30px;
-}
-.form-group {
-	position: relative;
-}
-.input-wrapper{
-	display: flex;
-	align-items: center;
-	position: relative;
-}
-.input-wrapper .icon {
-	position:absolute ;
-	left: 10px;
-	font-size: 16px;
-}
-.form-control {
-	padding: 12px 40px;
-	border: none;
-	border-radius: 10px;
-	transition: ease 0.3s;
-}
-.btn-auth {
-	width: 100%;
-	padding: 12px;
-	border-radius: 5px;
-	border: none;
-	font-weight: 500;
-	margin-top: 10px;
-	text-transform: uppercase;
-	transition: ease 0.3s;
-}
-.login-link {
-	font-size: 20px;
-}
-.login-link a{
-	color:var(--color-price);
-	font-weight: 500;
-}
-.login-link a:hover{
-	text-decoration: underline;
-	color: var(--color-btn);
-}
-.eye {
-	position: absolute;
-	top:50%;
-	right: 10px;
-	transform: translateY(-50%);
-	cursor: pointer;
-	padding-left: 5px;
+    opacity: 1;
+    transform: translateY(-2px); /* Hiệu ứng nổi lên nhẹ */
 }
 
-/* responsive */ 
-@media screen and (max-width:576px) {
-	.col-md-6{
-		padding: 25px;
-		margin: 0 15px;
-	}
-	.section__heading {
-		font-size: 20px;
-	}
+/* Section Heading */
+.section__heading{
+    text-align: center;
+    font-size: 2.8rem; /* Tăng kích thước phông chữ lên một chút (45px) */
+    color: var(--color-black); 
+    font-weight: 800; /* Tăng độ đậm (Boldness) */
+    text-transform: uppercase;
+    margin-bottom: 2rem; /* Tăng khoảng cách dưới (32px) */
+    letter-spacing: 2px; /* Tăng khoảng cách chữ để trông sang trọng hơn */
+    text-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.15), 
+        0 0 1px rgba(0, 0, 0, 0.05); /* Thêm bóng chữ nhẹ */
+    opacity: 0;
+    transform: translateY(10px);
+    animation: headingFadeIn 0.8s ease-out 0.2s forwards;
+}
+
+/* Keyframes cho Animation Tiêu đề */
+@keyframes headingFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: 1.25rem; /* Thêm margin dưới cho form group */
+    position: relative;
+}
+.input-wrapper{
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+.input-wrapper .icon {
+    position:absolute ;
+    left: 0.625rem; /* 10px -> rem */
+    font-size: 1rem; /* 16px -> rem */
+    color: var(--color-grey);
+	transition: color var(--transition-speed) var(--transition-easing), 
+                transform var(--transition-speed) var(--transition-easing);
+    pointer-events: none; /* Đảm bảo icon không chặn click vào input */
+    z-index: 2; /* Đặt icon lên trên input */
+}
+.input-wrapper:focus-within .icon {
+    color: var(--icon-color-active); /* Đổi màu khi focus */
+    transform: scale(1.05); /* Phóng to nhẹ icon khi focus */
+}
+.form-control {
+    width: 100%; /* Quan trọng: Đảm bảo input chiếm hết chiều rộng */
+    padding: 0.75rem 2.5rem; /* 12px 40px -> rem */
+    border: 2px solid var(--color-grey-light); /* Thêm border nhẹ mặc định */
+    border-radius: 0.625rem; /* 10px -> rem */
+    transition: all 0.3s ease;
+    background-color: var(--color-white); /* Đảm bảo nền trắng rõ ràng */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); /* Shadow chìm nhẹ */
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--color-btn); /* Đổi màu border khi focus */
+    box-shadow: 0 0 0 3px rgba(65, 166, 126, 0.3); /* Ring focus màu xanh */
+}
+
+/* Auth Button */
+.btn-auth {
+    --btn-color: var(--color-btn);
+    background: var(--btn-color);
+    width: 100%;
+    padding: 0.75rem; /* 12px -> rem */
+    border-radius: 0.3125rem; /* 5px -> rem */
+    border: none;
+    font-weight: 600; /* Tăng độ đậm */
+    margin-top: 0.625rem; /* 10px -> rem */
+    text-transform: uppercase;
+    color: var(--color-white);
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+.btn-auth:hover {
+    background-color: #358c67; /* Màu đậm hơn khi hover */
+}
+.btn-auth:active {
+    transform: scale(0.99); /* Hiệu ứng nhấn */
+}
+
+/* Login/Register Link */
+.login-link {
+    text-align: center;
+    margin-top: 1.25rem;
+    font-size: 1rem; /* 20px -> 16px (1rem) cho cân đối hơn */
+}
+.login-link a{
+    color: var(--color-price);
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+.login-link a:hover{
+    text-decoration: underline;
+    color: var(--color-btn);
+}
+
+/* Eye Icon (Show/Hide Password) */
+.eye {
+    position: absolute;
+    top:50%;
+    right: 0.625rem; /* 10px -> rem */
+    transform: translateY(-50%);
+    cursor: pointer;
+    padding: 0.3125rem; /* 5px -> rem */
+    color: var(--color-grey);
+    transition: color 0.3s ease;
+}
+.eye:hover {
+    color: var(--color-black);
+}
+
+/* Responsive */
+@media screen and (max-width:36rem) { /* 576px -> rem */
+    .col-md-6{
+        padding: 1.5rem; /* 25px -> rem */
+        margin: 0 0.9375rem; /* 15px -> rem */
+    }
+    .section__heading {
+        font-size: 1.5rem; /* 20px -> rem */
+        margin-bottom: 1.5rem;
+    }
+    .logo-container {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
 }

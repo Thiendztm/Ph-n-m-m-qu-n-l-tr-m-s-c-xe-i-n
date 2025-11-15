@@ -3,7 +3,7 @@ package uth.edu.vn.dto.admin;
 import uth.edu.vn.entity.User;
 import uth.edu.vn.enums.UserRole;
 import java.time.LocalDateTime;
-import java.math.BigDecimal; // <-- THÊM IMPORT NÀY
+import java.math.BigDecimal;
 
 public class UserResponse {
     private Long id;
