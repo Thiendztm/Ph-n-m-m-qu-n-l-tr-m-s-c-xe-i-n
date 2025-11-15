@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nạp tiền - EV Wallet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/css/reset.css">
+    <link rel="stylesheet" href="./src/css/style.css">
+    <link rel="shortcut icon" href="./src/img/tachnen.png" type="image/x-icon">
+    <style>
+        .topup-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .balance-card h2 {
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .balance-amount {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .balance-info {
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .balance-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topup-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .topup-card h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .quick-amounts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .amount-button {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .amount-button:hover {
+            border-color: #4CAF50;
+            transform: translateY(-2px);
+        }
+
+        .amount-button.selected {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            color: #2e7d32;
+        }
+
+        .amount-button.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .custom-amount {
+            margin-bottom: 30px;
+        }
+
+        .custom-amount label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .custom-amount-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            transition: border-color 0.3s;
+        }
+
+        .custom-amount-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .payment-methods {
+            margin-bottom: 30px;
+        }
+
+        .payment-methods h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .payment-method {
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .payment-method:hover {
+            border-color: #4CAF50;
+        }
+
+        .payment-method.selected {
+            border-color: #4CAF50;
+            background: #f1f8f4;
+        }
+
+        .payment-method input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .payment-method-icon {
+            width: 50px;
+            height: 50px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .payment-method-info {
+            flex: 1;
+        }
+
+        .payment-method-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .payment-method-desc {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .topup-summary {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+
+        .topup-button {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .topup-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .topup-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .transaction-history {
+            margin-top: 50px;
+        }
+
+        .transaction-history h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .transaction-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .transaction-icon {
+            width: 50px;
+            height: 50px;
+            background: #e8f5e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #4CAF50;
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .transaction-date {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .transaction-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4CAF50;
+        }
+
+        @media (max-width: 768px) {
+            .balance-amount {
+                font-size: 36px;
+            }
+
+            .quick-amounts {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .topup-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header__top">
+                <a href="index.html" class="logo-container">
+                    <img src="./src/img/tachnen.png" alt="Logo EV">
+                    <h1>EV</h1>
+                </a>
+                <i class="fa-solid fa-bars menu_icon" id="menu-icon"></i>
+                <nav class="header__nav">
+                    <ul class="nav__list">
+                        <li class="nav__item"><a class="navbar__link" href="./index.html">Trang chủ</a></li>
+                        <li class="nav__item"><a class="navbar__link" href="./profile.html">Hồ sơ</a></li>
+                        <li class="nav__item"><a class="navbar__link" href="./charging-history.html">Lịch Sử</a></li>
+                        <li class="nav__item"><a class="navbar__link" href="./login.html">Đăng Nhập</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="topup-container">
+            <!-- Balance Card -->
+            <div class="balance-card">
+                <h2>Số dư ví hiện tại</h2>
+                <div class="balance-amount" id="currentBalance">0đ</div>
+                <div class="balance-info">
+                    <div class="balance-info-item">
+                        <i class="fas fa-calendar"></i>
+                        <span>Cập nhật: <span id="lastUpdate">-</span></span>
+                    </div>
+                    <div class="balance-info-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Tổng nạp: <span id="totalTopup">0đ</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top-up Form -->
+            <div class="topup-card">
+                <h3><i class="fas fa-wallet"></i> Nạp tiền vào ví</h3>
+
+                <!-- Quick Amount Selection -->
+                <div class="quick-amounts">
+                    <button class="amount-button" data-amount="50000" onclick="selectAmount(50000)">
+                        50,000đ
+                    </button>
+                    <button class="amount-button" data-amount="100000" onclick="selectAmount(100000)">
+                        100,000đ
+                    </button>
+                    <button class="amount-button" data-amount="200000" onclick="selectAmount(200000)">
+                        200,000đ
+                    </button>
+                    <button class="amount-button" data-amount="500000" onclick="selectAmount(500000)">
+                        500,000đ
+                    </button>
+                    <button class="amount-button" data-amount="1000000" onclick="selectAmount(1000000)">
+                        1,000,000đ
+                    </button>
+                    <button class="amount-button" data-amount="2000000" onclick="selectAmount(2000000)">
+                        2,000,000đ
+                    </button>
+                </div>
+
+                <!-- Custom Amount -->
+                <div class="custom-amount">
+                    <label for="customAmount">Hoặc nhập số tiền khác:</label>
+                    <input 
+                        type="number" 
+                        id="customAmount" 
+                        class="custom-amount-input"
+                        placeholder="Nhập số tiền (tối thiểu 10,000đ)"
+                        min="10000"
+                        step="10000"
+                        oninput="selectCustomAmount(this.value)"
+                    />
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="payment-methods">
+                    <h4>Phương thức thanh toán:</h4>
+                    
+                    <label class="payment-method" onclick="selectPaymentMethod('momo')">
+                        <input type="radio" name="paymentMethod" value="momo" checked />
+                        <div class="payment-method-icon" style="background: #d82d8b;">
+                            <i class="fas fa-mobile-alt" style="color: white;"></i>
+                        </div>
+                        <div class="payment-method-info">
+                            <div class="payment-method-name">MoMo</div>
+                            <div class="payment-method-desc">Ví điện tử MoMo - Nhanh chóng, an toàn</div>
+                        </div>
+                    </label>
+
+                    <label class="payment-method" onclick="selectPaymentMethod('bank')">
+                        <input type="radio" name="paymentMethod" value="bank" />
+                        <div class="payment-method-icon" style="background: #0066cc;">
+                            <i class="fas fa-university" style="color: white;"></i>
+                        </div>
+                        <div class="payment-method-info">
+                            <div class="payment-method-name">Chuyển khoản ngân hàng</div>
+                            <div class="payment-method-desc">Chuyển khoản qua Internet Banking</div>
+                        </div>
+                    </label>
+
+                    <label class="payment-method" onclick="selectPaymentMethod('card')">
+                        <input type="radio" name="paymentMethod" value="card" />
+                        <div class="payment-method-icon" style="background: #ff6600;">
+                            <i class="fas fa-credit-card" style="color: white;"></i>
+                        </div>
+                        <div class="payment-method-info">
+                            <div class="payment-method-name">Thẻ ATM/Visa/MasterCard</div>
+                            <div class="payment-method-desc">Thanh toán bằng thẻ nội địa hoặc quốc tế</div>
+                        </div>
+                    </label>
+
+                    <label class="payment-method" onclick="selectPaymentMethod('zalopay')">
+                        <input type="radio" name="paymentMethod" value="zalopay" />
+                        <div class="payment-method-icon" style="background: #0068ff;">
+                            <i class="fas fa-wallet" style="color: white;"></i>
+                        </div>
+                        <div class="payment-method-info">
+                            <div class="payment-method-name">ZaloPay</div>
+                            <div class="payment-method-desc">Thanh toán qua ví ZaloPay</div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Summary -->
+                <div class="topup-summary">
+                    <div class="summary-row">
+                        <span>Số tiền nạp:</span>
+                        <span id="summaryAmount">0đ</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Phí giao dịch:</span>
+                        <span id="summaryFee">0đ</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tổng thanh toán:</span>
+                        <span id="summaryTotal">0đ</span>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button class="topup-button" id="topupButton" onclick="processTopup()">
+                    <i class="fas fa-check-circle"></i>
+                    Xác nhận nạp tiền
+                </button>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="transaction-history">
+                <h3>Lịch sử nạp tiền</h3>
+                <div id="transactionList">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <h2>&copy; Copyright © 2025 EV Wallet. All rights reserved.</h2>
+        </div>
+    </footer>
+
+    <script type="module">
+        import api from './src/js/api-client.js';
+        import { showNotification } from './src/js/data-flow.js';
+
+        let selectedAmount = 0;
+        let selectedPaymentMethod = 'momo';
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                window.location.href = 'login.html?redirect=wallet-topup.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Load wallet balance
+        async function loadWalletBalance() {
+            try {
+                const data = await api.driver.getWalletBalance();
+                document.getElementById('currentBalance').textContent = formatCurrency(data.balance);
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleDateString('vi-VN');
+                document.getElementById('totalTopup').textContent = formatCurrency(data.totalTopup || 0);
+            } catch (error) {
+                console.error('Error loading wallet:', error);
+                // Use mock data
+                document.getElementById('currentBalance').textContent = '125,000đ';
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleDateString('vi-VN');
+                document.getElementById('totalTopup').textContent = '500,000đ';
+            }
+        }
+
+        // Load transaction history
+        async function loadTransactionHistory() {
+            const container = document.getElementById('transactionList');
+            
+            try {
+                const history = await api.driver.getWalletBalance(); // Extend API to include history
+                // Display transactions
+            } catch (error) {
+                // Mock data
+                container.innerHTML = `
+                    <div class="transaction-item">
+                        <div class="transaction-icon"><i class="fas fa-plus"></i></div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">Nạp tiền qua MoMo</div>
+                            <div class="transaction-date">12/11/2025 14:30</div>
+                        </div>
+                        <div class="transaction-amount">+100,000đ</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-icon"><i class="fas fa-plus"></i></div>
+                        <div class="transaction-details">
+                            <div class="transaction-title">Nạp tiền qua Ngân hàng</div>
+                            <div class="transaction-date">10/11/2025 09:15</div>
+                        </div>
+                        <div class="transaction-amount">+200,000đ</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Select amount
+        window.selectAmount = function(amount) {
+            selectedAmount = amount;
+            
+            // Update UI
+            document.querySelectorAll('.amount-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.querySelector(`[data-amount="${amount}"]`).classList.add('selected');
+            document.getElementById('customAmount').value = '';
+            
+            updateSummary();
+        };
+
+        // Select custom amount
+        window.selectCustomAmount = function(value) {
+            selectedAmount = parseInt(value) || 0;
+            
+            // Clear quick amounts selection
+            document.querySelectorAll('.amount-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            updateSummary();
+        };
+
+        // Select payment method
+        window.selectPaymentMethod = function(method) {
+            selectedPaymentMethod = method;
+            
+            // Update UI
+            document.querySelectorAll('.payment-method').forEach(pm => {
+                pm.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            updateSummary();
+        };
+
+        // Update summary
+        function updateSummary() {
+            const fee = calculateFee(selectedAmount, selectedPaymentMethod);
+            const total = selectedAmount + fee;
+            
+            document.getElementById('summaryAmount').textContent = formatCurrency(selectedAmount);
+            document.getElementById('summaryFee').textContent = formatCurrency(fee);
+            document.getElementById('summaryTotal').textContent = formatCurrency(total);
+            
+            // Enable/disable button
+            document.getElementById('topupButton').disabled = selectedAmount < 10000;
+        }
+
+        // Calculate fee
+        function calculateFee(amount, method) {
+            if (method === 'momo' || method === 'zalopay') {
+                return 0; // Free
+            } else if (method === 'bank') {
+                return Math.max(1000, amount * 0.01); // 1% or min 1000đ
+            } else if (method === 'card') {
+                return amount * 0.015; // 1.5%
+            }
+            return 0;
+        }
+
+        // Process top-up
+        window.processTopup = async function() {
+            if (selectedAmount < 10000) {
+                showNotification('Số tiền nạp tối thiểu là 10,000đ', 'warning');
+                return;
+            }
+
+            const button = document.getElementById('topupButton');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+
+            try {
+                const result = await api.driver.topUpWallet(selectedAmount, selectedPaymentMethod);
+                
+                showNotification(`Nạp ${formatCurrency(selectedAmount)} thành công!`, 'success');
+                
+                // Reload balance
+                await loadWalletBalance();
+                
+                // Reset form
+                selectedAmount = 0;
+                document.querySelectorAll('.amount-button').forEach(btn => btn.classList.remove('selected'));
+                document.getElementById('customAmount').value = '';
+                updateSummary();
+                
+            } catch (error) {
+                console.error('Top-up error:', error);
+                showNotification('Có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-check-circle"></i> Xác nhận nạp tiền';
+            }
+        };
+
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                loadWalletBalance();
+                loadTransactionHistory();
+                updateSummary();
+            }
+        });
+    </script>
+</body>
+</html>

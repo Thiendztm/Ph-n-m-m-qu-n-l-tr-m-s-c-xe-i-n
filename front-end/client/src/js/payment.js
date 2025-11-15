@@ -1,3 +1,6 @@
+// Configuration
+const API_BASE_URL = 'http://localhost:8080/api';
+
 let currentPlan = 'usage';   // usage | once | monthly
 let hideEnergy = false;
 
@@ -15,69 +18,84 @@ planTitleEl.className = 'detail-item';
 planTitleEl.innerHTML = `<span>Gói sạc:</span> <strong id="selectedPlan">Chưa chọn</strong>`;
 paymentDetails.querySelector('.box__detail-items').prepend(planTitleEl);
 
-// === Wallet Balance Management ===
-function getWalletBalance() {
-    const balance = localStorage.getItem('walletBalance');
-    return balance ? parseFloat(balance) : 0; // Get from localStorage (updated by profile API)
+// === Wallet Balance Management - Integrated with Backend ===
+async function fetchWalletBalance() {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) {
+        console.error('No auth token found');
+        return 0;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/profile/wallet`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const balance = data.balance || 0;
+            // Update localStorage cache
+            localStorage.setItem('walletBalance', balance.toString());
+            return balance;
+        } else {
+            console.error('Failed to fetch wallet balance');
+            return parseFloat(localStorage.getItem('walletBalance') || '0');
+        }
+    } catch (error) {
+        console.error('Error fetching wallet:', error);
+        // Fallback to cached value
+        return parseFloat(localStorage.getItem('walletBalance') || '0');
+    }
 }
 
-function updateWalletDisplay() {
-    const balance = getWalletBalance();
+async function updateWalletDisplay() {
+    const balance = await fetchWalletBalance();
     const balanceEl = document.getElementById('walletBalance');
     if (balanceEl) {
         balanceEl.textContent = balance.toLocaleString('vi-VN') + 'đ';
     }
 }
 
-// API call để cập nhật wallet balance trong database
-async function deductWalletBalance(amount) {
-    const token = localStorage.getItem('accessToken');
+// API call để thanh toán qua ví (trừ tiền và tạo transaction)
+async function processWalletPayment(amount, sessionId) {
+    const token = localStorage.getItem('jwt_token');
     if (!token) {
         console.error('No auth token found');
-        return false;
+        return { success: false, message: 'Vui lòng đăng nhập' };
     }
 
     try {
-        const response = await fetch('/api/profile/wallet', {
-            method: 'PUT',
+        const response = await fetch(`${API_BASE_URL}/payment/wallet`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
-                amount: amount
+                amount: amount,
+                sessionId: sessionId || null,
+                planType: currentPlan,
+                description: `Thanh toán ${document.getElementById('selectedPlan').textContent}`
             })
         });
 
         const data = await response.json();
         
-        if (response.ok) {
-            // Cập nhật localStorage với số dư mới từ server
+        if (response.ok && data.success) {
+            // Cập nhật số dư mới từ server
             localStorage.setItem('walletBalance', data.newBalance.toString());
             updateWalletDisplay();
-            return true;
+            return { success: true, newBalance: data.newBalance };
         } else {
-            console.error('Wallet update failed:', data.error);
-            return false;
+            return { success: false, message: data.message || 'Thanh toán thất bại' };
         }
     } catch (error) {
-        console.error('Error updating wallet:', error);
-        return false;
+        console.error('Error processing payment:', error);
+        return { success: false, message: 'Lỗi kết nối. Vui lòng thử lại.' };
     }
-}
-
-function saveTransaction(amount, method, status) {
-    const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
-    const transaction = {
-        id: Date.now(),
-        amount: amount,
-        method: method,
-        status: status,
-        timestamp: new Date().toISOString(),
-        description: 'Thanh toán phiên sạc EV'
-    };
-    transactions.unshift(transaction); // Thêm vào đầu mảng
-    localStorage.setItem('transactions', JSON.stringify(transactions.slice(0, 100))); // Giữ tối đa 100 giao dịch
 }
 
 // === 2. DOMContentLoaded - Khôi phục dữ liệu + điền thông tin trạm ===
@@ -209,7 +227,7 @@ function updateTotalAmount() {
     }
 }
 
-// === 5. Xử lý thanh toán ===
+// === 5. Xử lý thanh toán - Integrated with Backend ===
 document.getElementById('paymentForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -220,57 +238,69 @@ document.getElementById('paymentForm')?.addEventListener('submit', async (e) => 
     const total = parseInt(totalEl.textContent.replace(/\D/g, '')) || 0;
 
     if (method === 'ev') {
-        const currentBalance = getWalletBalance();
-
-        if (currentBalance >= total) {
-            // Hiển thị loading
-            const submitBtn = document.querySelector('.btn-pay');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
-            submitBtn.disabled = true;
+        // Hiển thị loading
+        const submitBtn = document.querySelector('.btn-pay');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+        submitBtn.disabled = true;
+        
+        try {
+            // Get current balance first
+            const currentBalance = await fetchWalletBalance();
             
-            try {
-                // Trừ tiền từ ví qua API
-                const success = await deductWalletBalance(total);
-                if (success) {
-                    const newBalance = getWalletBalance();
-                    alert(`Thanh toán thành công bằng Ví EV!\nĐã trừ: ${total.toLocaleString('vi-VN')}đ\nSố dư còn lại: ${newBalance.toLocaleString('vi-VN')}đ`);
-                    
-                    // Lưu lịch sử giao dịch
-                    saveTransaction(total, 'ev_wallet', 'success');
-                    
-                    localStorage.setItem('bookingStatus', 'success');
-                    window.location.href = 'index.html';
-                } else {
-                    alert('Có lỗi xảy ra khi trừ tiền từ ví! Vui lòng thử lại.');
-                }
-            } catch (error) {
-                console.error('Payment error:', error);
-                alert('Có lỗi xảy ra khi xử lý thanh toán! Vui lòng thử lại.');
-            } finally {
-                // Restore button
+            if (currentBalance < total) {
+                alert(`Số dư ví không đủ!\nSố dư hiện tại: ${currentBalance.toLocaleString('vi-VN')}đ\nSố tiền cần thanh toán: ${total.toLocaleString('vi-VN')}đ`);
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
+                return;
             }
-        } else {
-            alert(`Số dư ví không đủ!\nSố dư hiện tại: ${currentBalance.toLocaleString('vi-VN')}đ\nSố tiền cần thanh toán: ${total.toLocaleString('vi-VN')}đ`);
+
+            // Process payment via backend
+            const sessionId = localStorage.getItem('currentSessionId') || null;
+            const result = await processWalletPayment(total, sessionId);
+            
+            if (result.success) {
+                alert(`Thanh toán thành công bằng Ví EV!\nĐã trừ: ${total.toLocaleString('vi-VN')}đ\nSố dư còn lại: ${result.newBalance.toLocaleString('vi-VN')}đ`);
+                
+                localStorage.setItem('bookingStatus', 'success');
+                // Clear session if exists
+                localStorage.removeItem('currentSessionId');
+                window.location.href = 'index.html';
+            } else {
+                alert(`Thanh toán thất bại!\n${result.message}`);
+            }
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Có lỗi xảy ra khi xử lý thanh toán! Vui lòng thử lại.');
+        } finally {
+            // Restore button
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
         }
     } else {
-        // Thanh toán ngân hàng/thẻ → hiện OTP
+        // Thanh toán ngân hàng/thẻ → hiện OTP (sẽ tích hợp payment gateway sau)
         otpSection.style.display = 'block';
         otpInput.value = '';
         otpInput.focus();
 
         // Gỡ listener cũ để tránh bị ghi đè
         otpInput.oninput = null;
-        otpInput.addEventListener('input', function handler() {
+        otpInput.addEventListener('input', async function handler() {
             if (this.value.length === 6) {
-                alert(`Thanh toán thành công bằng ${method === 'bank' ? 'Ngân hàng' : 'Thẻ tín dụng'}!`);
-                otpSection.style.display = 'none';
-                this.value = '';
-                otpInput.removeEventListener('input', handler);
-                localStorage.setItem('bookingStatus', 'success');
-                window.location.href = 'index.html';
+                // TODO: Verify OTP with backend
+                const submitBtn = document.querySelector('.btn-pay');
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Xác thực OTP...';
+                submitBtn.disabled = true;
+                
+                // Simulate OTP verification (replace with real API call)
+                setTimeout(() => {
+                    alert(`Thanh toán thành công bằng ${method === 'bank' ? 'Ngân hàng' : 'Thẻ tín dụng'}!`);
+                    otpSection.style.display = 'none';
+                    this.value = '';
+                    otpInput.removeEventListener('input', handler);
+                    localStorage.setItem('bookingStatus', 'success');
+                    window.location.href = 'index.html';
+                }, 1000);
             }
         });
     }
