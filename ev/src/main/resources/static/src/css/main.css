@@ -1,107 +1,156 @@
 :root{
-    --color-price:#5D866C;
-     --color-btn:#41A67E;
-     --color-white:#fff;
-    --color-danger:#c80036;
-    --color-grey:#5c5c5e;
-    --color-grey-light:#dcdcdc;
-    --color-black:#000;
-}
-html{
-    font-family: "Inter", sans-serif;
-    
-}
-.container {
-    width: 1170px;
-    max-width: calc(1170 - 48px);/*Khi chieu dai cua trang web nho hon 1170 thi giup cho trang le trai va phai co kc 24px*/
-    margin: 0 auto;/*can giua*/
-}
-a {
-    text-decoration: none;
+    /* Colors */
+    --color-price: #5D866C;
+    --color-btn: #41A67E;
+    --color-white: #fff;
+    --color-danger: #c80036;
+    --color-grey: #5c5c5e;
+    --color-grey-light: #dcdcdc;
+    --color-black: #000;
+    --color-hover-light: #f8f9fa; /* Màu nền khi hover nhẹ */
+
+    /* Typography */
+    --font-size-base: 16px;
+
+    /* Shadows (sử dụng biến cho shadow) */
+    --shadow-sm: rgba(0, 0, 0, 0.1) 0 1px 4px;
+    --shadow-md: rgba(0, 0, 0, 0.15) 0 2px 8px;
+    --shadow-lg: rgba(0, 0, 0, 0.2) 0 4px 16px;
+
+    /* Transitions */
+    --transition-speed: 0.3s;
+    --transition-easing: ease-in-out;
 }
 
+/* Global Reset & Base */
+*, *::before, *::after {
+    box-sizing: border-box; /* Cải tiến quan trọng */
+    margin: 0;
+    padding: 0;
+}
+
+html{
+    font-family: "Inter", sans-serif;
+    font-size: var(--font-size-base); /* Dễ dàng thay đổi kích thước phông chữ cơ bản */
+}
+
+a {
+    text-decoration: none;
+    color: inherit; /* Cho phép link kế thừa màu sắc từ cha */
+}
+
+/* Layout */
+.container {
+    --container-max-width: 1170px;
+    --container-padding: 24px; /* 48px / 2 */
+    width: min(var(--container-max-width), 100% - (var(--container-padding) * 2)); /* Sử dụng min() để tính toán linh hoạt */
+    margin: 0 auto;
+}
+
+.page-wrapper {
+    min-height: 100vh;
+}
+
+/* Utility Classes */
+.logo-img {
+    max-width: 200px;
+    height: auto; /* Đảm bảo hình ảnh co giãn đúng tỉ lệ */
+}
+
+.rounded-sm {
+ border-radius: 0.25rem; /* 4px */
+}
+.rounded-md {
+ border-radius: 0.3125rem; /* 5px */
+}
+
+.shadow-md{
+ box-shadow: var(--shadow-md);
+}
+
+/* Buttons */
 .btn-primary{
     background: var(--color-btn);
+    color: var(--color-white); /* Thêm màu chữ mặc định cho button */
     border: none;
+    padding: 0.5rem 1rem; /* Thêm padding mặc định */
+    transition: opacity var(--transition-speed) var(--transition-easing), 
+                background-color var(--transition-speed) var(--transition-easing);
 }
 .btn-primary:hover{
-    opacity: 0.7;
+    opacity: 0.85; /* Giảm độ mờ một chút để hiệu ứng tinh tế hơn */
     cursor: pointer;
 }
 
 .btn-cancle{
     color: var(--color-white);
-}
-.logo-img {
-    max-width: 200px;
-}
-.page-wrapper {
-    min-height: 100vh;
-}
-.rounded-sm {
- border-radius: 4px;
-}
-.rounded-md {
- border-radius: 5px;
-}
-.shadow-md{
- box-shadow: rgba(0,0,0,0.15) 0 2px 8px;
+    /* Nếu đây là nút chỉ có chữ và nền trong suốt, hãy thêm background: none; */
 }
 
-/* CSS cho search suggestions */
+/* Search Suggestions Component */
 .search-suggestions {
+    /* Sử dụng biến cục bộ cho component */
+    --sg-border-color: #ddd; 
+    --sg-shadow: var(--shadow-lg); 
+
     display: none;
     position: absolute;
     top: 100%;
     left: 0;
     right: 0;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    max-height: 300px;
+    background: var(--color-white);
+    border: 1px solid var(--sg-border-color);
+    border-radius: 0.5rem; /* 8px */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Giữ lại shadow gốc hoặc dùng --shadow-lg */
+    max-height: 18.75rem; /* 300px */
     overflow-y: auto;
     z-index: 1000;
-    margin-top: 4px;
+    margin-top: 0.25rem; /* 4px */
 }
 
 .sg-item {
-    padding: 12px 16px;
+    --sg-item-padding: 0.75rem 1rem; /* 12px 16px */
+    --sg-item-border: 1px solid #f0f0f0; 
+
+    padding: var(--sg-item-padding);
     cursor: pointer;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s ease;
-    font-size: 14px;
+    border-bottom: var(--sg-item-border);
+    transition: background-color 0.2s var(--transition-easing);
+    font-size: 0.875rem; /* 14px */
     display: flex;
     align-items: center;
 }
 
 .sg-item:hover {
-    background-color: #f8f9fa;
+    background-color: var(--color-hover-light);
 }
 
 .sg-item:last-child {
     border-bottom: none;
 }
 
-/* CSS cho nút đăng xuất */
+/* Logout Button */
 .logout-btn {
+    --logout-padding: 0.5rem 0.75rem; /* 8px 12px */
+
     background: none;
     border: none;
     color: var(--color-black);
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
+    padding: var(--logout-padding);
+    border-radius: 0.25rem; /* 4px */
+    transition: background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing);
     display: flex;
     align-items: center;
-    gap: 5px;
-    font-size: 14px;
+    gap: 0.3125rem; /* 5px */
+    font-size: 0.875rem; /* 14px */
 }
 
 .logout-btn:hover {
-    background-color: #f0f0f0;
+    background-color: #f0f0f0; /* Hoặc sử dụng var(--color-hover-light); */
+    color: var(--color-black); /* Đảm bảo màu chữ không đổi */
 }
 
 .logout-btn i {
-    font-size: 16px;
+    font-size: 1rem; /* 16px */
 }

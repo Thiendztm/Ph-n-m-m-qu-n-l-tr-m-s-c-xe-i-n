@@ -1,86 +1,126 @@
-/* @media (max-width: 768px) {
-  .map-grid { grid-template-columns: 1fr; }
-  .map { height: 400px; }
-  .filters { flex-direction: column; }
-  .filter-group { justify-content: center; width: 100%; }
-  .search-wrapper { width: 100%; }
-  .select-menu { width: 140px; }
-  .btn-location { width: 100%; }
-} */
+/* -------------------------------------------------------------------------- */
+/* === Tối ưu hóa CSS cho Thiết bị: Tablet và Mobile === */
+/* -------------------------------------------------------------------------- */
 
-/* Table: <= 1024px */
-@media (max-width: 1024px) {
-   .container {
+/* Tablet: <= 1024px */
+@media (max-width: 64rem) { /* 1024px -> 64rem */
+    
+    /* Layout cơ bản */
+    .container {
         width: 100%;
         max-width: 100%;
-        padding: 0 20px;
+        padding: 0 1.25rem; /* 20px -> 1.25rem */
     }
+    
+    /* Ẩn tiêu đề logo trên tablet */
     .logo-container h1 {
         display: none;
     }
-
-  .map-grid { grid-template-columns: 1fr; }
-  .map { height: 400px; }
-  .filter-group { justify-content: center; width: 100%; }
-  .search-wrapper { width: 100%; }
-  .select-menu { width: 140px; }
-}
-/* Mobile : <= 768px */
-@media (max-width: 768px) {
-      .container {
-      width: 100%;
-      padding: 0 8px;
+    
+    /* Về cấu trúc, các thay đổi này được áp dụng từ Tablet trở xuống */
+    /* Map & Grid Layout */
+    .map-grid { 
+        grid-template-columns: 1fr; /* Luôn là 1 cột */
     }
+    .map { 
+        height: 400px; 
+    }
+    
+    /* Filters */
+    .filter-group { 
+        justify-content: center; 
+        width: 100%; 
+    }
+    .search-wrapper { 
+        width: 100%; 
+    }
+    .select-menu { 
+        width: 140px; /* Giữ nguyên 140px */
+    }
+}
+
+
+/* Mobile: <= 768px (Loại bỏ các thuộc tính trùng lặp đã có ở 1024px) */
+@media (max-width: 48rem) { /* 768px -> 48rem */
+    
+    /* Container (Siết chặt padding hơn) */
+    .container {
+        padding: 0 0.5rem; /* 8px -> 0.5rem */
+    }
+    
+    /* Header & Navigation (Menu Bar) */
     .header__nav {
         position: absolute;
         top: 100%;
         left: 0;
         width: 100%;
-        background: pink;
-        box-shadow: 0 2px 8px #0002;
+        /* Sử dụng biến màu nếu có, thay vì màu cứng */
+        background: pink; 
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Dùng rgba */
         z-index: 10001;
         text-align: center;
         display: none;
+        transition: transform 0.3s ease-out; /* Thêm transition cho menu */
     }
-    .logo-container img {
-        width: 80px;
-    }
-   .menu_icon {
+    
+    /* Hiệu ứng khi menu active */
+    .header__nav.active {
         display: block;
-        cursor: pointer;
-        margin-right: 20px;
-   }
-     .navbar__link {
-        display: block;
-        padding: 10px 0;
-    }
-  .header__nav.active {
-        display: block;
-    }
-    .nav__list {
-        flex-direction: column;
-        gap: 10px;
-    }
-  .map-grid { grid-template-columns: 1fr; }
-  .map { height: 400px; }
-  .filters { flex-direction: column; }
-  .filter-group { justify-content: center; width: 100%; }
-  .search-wrapper { width: 100%; }
-  .select-menu { width: 140px; }
-}
-/* Small Mobile : <= 480px */
-@media (max-width: 480px) {
-  .container {
-      padding: 0 4px;
-    }
-    .section__title {
-        font-size: 2.4rem;
+        /* Nếu dùng animation, có thể thêm transform: translateY(0); */
     }
 
-  .map-grid { grid-template-columns: 1fr; }
-  .map { height: 300px; }
-  .filters { flex-direction: column; }
-  .filter-group { justify-content: center; width: 100%; }
-  .search-wrapper { width: 100%; }
-  .select-menu { width: 140px; }
+    .logo-container img {
+        width: 5rem; /* 80px -> 5rem */
+    }
+
+    .menu_icon {
+        display: block;
+        cursor: pointer;
+        margin-right: 1.25rem; /* 20px -> 1.25rem */
+    }
+
+    .nav__list {
+        flex-direction: column;
+        gap: 0.625rem; /* 10px -> 0.625rem */
+        padding: 1rem 0; /* Thêm padding trên/dưới cho list */
+    }
+    
+    .navbar__link {
+        display: block;
+        padding: 0.625rem 0; /* 10px 0 -> 0.625rem 0 */
+        /* Thêm hiệu ứng hover tinh tế cho link trong menu mobile */
+        transition: background-color 0.2s ease;
+    }
+    .navbar__link:hover {
+        background-color: #f0f0f0;
+    }
+    
+    /* Filters (Chỉ áp dụng các thuộc tính thay đổi so với 1024px) */
+    .filters { 
+        flex-direction: column; /* Chuyển thành 1 cột */
+    }
+    /* .filter-group, .search-wrapper, .select-menu đã được xử lý ở 1024px */
+}
+
+
+/* Small Mobile: <= 480px */
+@media (max-width: 30rem) { /* 480px -> 30rem */
+    .container {
+        padding: 0 0.25rem; /* 4px -> 0.25rem */
+    }
+    
+    .section__title {
+        font-size: 1.8rem; /* Giảm nhẹ kích thước tiêu đề chính để tránh tràn */
+    }
+
+    /* Map (Giảm chiều cao bản đồ) */
+    .map { 
+        height: 300px; 
+    }
+    
+    /* Buttons và các phần tử nhỏ hơn */
+    .select-menu {
+        /* Có thể giảm chiều rộng select menu nếu cần */
+        width: 100%; /* Hoặc để nó chiếm toàn bộ chiều rộng để dễ chọn */
+    }
 }

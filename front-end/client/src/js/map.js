@@ -1,6 +1,3 @@
-/**
- * Hàm khởi tạo (constructor) cho đối tượng trạm sạc.
- */
 function tram(name, lat, lng, connector, status, power, price, address, distance) {
     this.name = name;
     this.lat = lat;
@@ -32,23 +29,90 @@ function tram(name, lat, lng, connector, status, power, price, address, distance
     };
 }
 
+// =====================================================
+// LEAFLET MAP GLOBALS
+// =====================================================
 let map;
 let markers = [];
+let markerLayer;
+let userMarker = null;
 let isMapLoaded = false;
 
-// API Configuration
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
 
-// Load stations from backend API
+// =====================================================
+// CUSTOM ICONS FOR LEAFLET (chỉ khởi tạo sau khi Leaflet loaded)
+// =====================================================
+let availableIcon, occupiedIcon, userIcon;
+
+function initIcons() {
+    availableIcon = L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+        background: #00FF00;
+        width: 32px;
+        height: 32px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid #FFFFFF;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    ">
+        <span style="transform: rotate(45deg); color: white; font-size: 16px;">⚡</span>
+    </div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+    });
+
+    occupiedIcon = L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+        background: #FF0000;
+        width: 32px;
+        height: 32px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid #FFFFFF;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    ">
+        <span style="transform: rotate(45deg); color: white; font-size: 16px;">🔌</span>
+    </div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+    });
+
+    userIcon = L.divIcon({
+    className: 'user-marker',
+    html: `<div style="
+        background: #007bff;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 3px solid #FFFFFF;
+        box-shadow: 0 0 0 2px #007bff, 0 3px 10px rgba(0,0,0,0.3);
+    "></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+    });
+}
+
+// =====================================================
+// LOAD STATIONS FROM BACKEND API
+// =====================================================
 async function loadStationsFromAPI() {
     try {
         const response = await fetch(`${API_BASE_URL}/stations`);
         const data = await response.json();
         
         if (data.success && data.stations) {
-            // Convert API response to tram objects
             return data.stations.map(station => {
-                // Find first available charger for display
                 const firstCharger = station.chargers && station.chargers.length > 0 
                     ? station.chargers[0] 
                     : null;
@@ -62,7 +126,7 @@ async function loadStationsFromAPI() {
                     firstCharger?.powerCapacity || 50,
                     firstCharger?.pricePerKwh || 3500,
                     station.address,
-                    '0km' // Distance will be calculated if user shares location
+                    '0km'
                 );
             });
         } else {
@@ -85,96 +149,136 @@ function getFallbackStations() {
     ];
 }
 
-// Main initialization function
+// =====================================================
+// MAIN INITIALIZATION FUNCTION - LEAFLET
+// =====================================================
 async function initMap() {
-    console.log('initMap called');
+    console.log('🗺️ Initializing Leaflet Map...');
     
     try {
-        // Kiểm tra Google Maps API
-        if (typeof google === 'undefined' || !google.maps) {
-            throw new Error("Google Maps API not loaded. Check your API key and billing.");
+        // Kiểm tra Leaflet library
+        if (typeof L === 'undefined') {
+            throw new Error("Leaflet library not loaded!");
         }
+        
+        // Khởi tạo icons sau khi Leaflet loaded
+        initIcons();
 
-        // Import thư viện marker
-        const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-        
-        console.log('Google Maps libraries loaded successfully');
-        isMapLoaded = true;
-        
-        // Tạo bản đồ với Map ID cho AdvancedMarkerElement
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 10.7769, lng: 106.7009 },
+        // Tạo map với OpenStreetMap
+        map = L.map('map', {
+            center: [10.7769, 106.7009], // TP.HCM
             zoom: 12,
-            mapId: "ev_charging_map", // Required for AdvancedMarkerElement
-            styles: [
-                { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-                { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
-                { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-                { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#d59563' }] }
-            ]
+            zoomControl: true,
+            scrollWheelZoom: true
         });
+
+        // Thêm OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+            minZoom: 3
+        }).addTo(map);
+
+        // Tạo layer group cho markers
+        markerLayer = L.layerGroup().addTo(map);
+
+        isMapLoaded = true;
+        console.log('✅ Leaflet Map loaded successfully');
 
         // Load stations from API
         const stations = await loadStationsFromAPI();
-        
-        const infowindow = new google.maps.InfoWindow({ content: "", maxWidth: 320 });
-        
-        stations.forEach((station) => {
-            let marker;
-            
-            try {
-                // Thử sử dụng AdvancedMarkerElement với PinElement
-                const pinColor = station.status === "available" ? "#00FF00" : "#FF0000";
-                const pin = new PinElement({
-                    background: pinColor,
-                    borderColor: "#FFFFFF",
-                    glyphColor: "#FFFFFF",
-                    glyph: station.status === "available" ? "⚡" : "🔌"
-                });
-                
-                marker = new AdvancedMarkerElement({
-                    position: { lat: station.lat, lng: station.lng },
-                    map: map,
-                    title: station.name,
-                    content: pin.element,
-                    gmpClickable: true
-                });
-            } catch (error) {
-                console.warn('AdvancedMarkerElement failed, using fallback Marker:', error.message);
-                // Fallback to regular Marker for billing issues
-                const iconColor = station.status === "available" ? "green" : "red";
-                marker = new google.maps.Marker({
-                    position: { lat: station.lat, lng: station.lng },
-                    map: map,
-                    title: station.name,
-                    icon: `http://maps.google.com/mapfiles/ms/icons/${iconColor}-dot.png`
-                });
-            }
+        console.log(`📍 Loaded ${stations.length} stations`);
 
-            marker.addListener("click", () => {
-                const content = `
-                    <div class="info-window">
-                        <h3>${station.name}</h3>
-                        <div class="info-details">
-                            <p><strong>Loại:</strong> ${station.connector}</p>
-                            <p><strong>Trạng thái:</strong> <span class="status ${station.status.toLowerCase()}">${station.status === 'available' ? 'Trống' : 'Đang dùng'}</span></p>
-                            <p><strong>Công suất:</strong> ${station.power}kW</p>
-                            <p><strong>Giá:</strong> ${station.price}đ/kWh</p>
-                            <p><strong>Địa chỉ:</strong> ${station.address}</p>
-                        </div>
-                        <div class="action-row">
-                            ${station.status === 'available' 
-                                ? `<button onclick="startBooking('${station.id}')">Đặt chỗ</button>`
-                                : `<button disabled>Đã đặt chỗ</button>`}
-                        </div>
+        // Create markers for each station
+        const bounds = [];
+        stations.forEach((station) => {
+            const icon = station.status === 'available' ? availableIcon : occupiedIcon;
+            
+            const marker = L.marker([station.lat, station.lng], { icon: icon })
+                .addTo(markerLayer);
+
+            // Create popup content
+            const popupContent = `
+                <div class="info-window" style="font-family: 'Inter', sans-serif; min-width: 280px;">
+                    <h3 style="margin: 0 0 12px 0; font-size: 18px; font-weight: 700; color: #333;">${station.name}</h3>
+                    <div class="info-details" style="font-size: 14px; color: #666; line-height: 1.8;">
+                        <p style="margin: 6px 0;"><strong>Loại:</strong> ${station.connector}</p>
+                        <p style="margin: 6px 0;">
+                            <strong>Trạng thái:</strong> 
+                            <span style="
+                                display: inline-block;
+                                padding: 4px 12px;
+                                border-radius: 12px;
+                                font-size: 12px;
+                                font-weight: 600;
+                                ${station.status === 'available' 
+                                    ? 'background: #d4edda; color: #155724;' 
+                                    : 'background: #f8d7da; color: #721c24;'}
+                            ">
+                                ${station.status === 'available' ? '✓ Trống' : '✗ Đang dùng'}
+                            </span>
+                        </p>
+                        <p style="margin: 6px 0;"><strong>Công suất:</strong> ${station.power}kW</p>
+                        <p style="margin: 6px 0;"><strong>Giá:</strong> ${station.price}đ/kWh</p>
+                        <p style="margin: 6px 0;"><strong>Địa chỉ:</strong> ${station.address}</p>
                     </div>
-                `;
-                infowindow.setContent(content);
-                infowindow.open(map, marker);
-            });
+                    <div class="action-row" style="margin-top: 15px; display: flex; gap: 10px;">
+                        ${station.status === 'available' 
+                            ? `<button onclick="startBooking('${station.id}')" style="
+                                flex: 1;
+                                padding: 10px 20px;
+                                background: #4CAF50;
+                                color: white;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 14px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: background 0.3s;
+                            " onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4CAF50'">
+                                📍 Đặt chỗ
+                            </button>`
+                            : `<button disabled style="
+                                flex: 1;
+                                padding: 10px 20px;
+                                background: #ccc;
+                                color: #666;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 14px;
+                                font-weight: 600;
+                                cursor: not-allowed;
+                            ">
+                                ✗ Đã đặt chỗ
+                            </button>`
+                        }
+                        <button onclick="map.setView([${station.lat}, ${station.lng}], 16)" style="
+                            padding: 10px 20px;
+                            background: #007bff;
+                            color: white;
+                            border: none;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: background 0.3s;
+                        " onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
+                            🔍 Zoom
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent, { maxWidth: 350 });
 
             markers.push({ marker, station });
+            bounds.push([station.lat, station.lng]);
         });
+
+        // Fit map to show all markers
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
 
         updateStationList();
         initSearchFunctionality(stations);
@@ -186,86 +290,119 @@ async function initMap() {
         // Áp dụng kết quả thanh toán (nếu có)
         applyBookingFromStorage();
         
-    } catch (error) {
-        console.error("Google Maps API Error:", error.message);
+        console.log('✅ Map initialization complete!');
         
-        // Kiểm tra nếu là lỗi billing
-        if (error.message.includes('BillingNotEnabledMapError')) {
-            showBillingError();
-        } else {
-            initFallbackUI();
-        }
+    } catch (error) {
+        console.error("❌ Leaflet Map Error:", error.message);
+        showMapError(error.message);
     }
 }
 
-// Khởi tạo UI fallback khi không có Google Maps
-function initFallbackUI() {
+// Hiển thị lỗi nếu map không load được
+function showMapError(errorMessage) {
     const mapContainer = document.getElementById("map");
     if (mapContainer) {
         mapContainer.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #f5f5f5; color: #666; flex-direction: column;">
-                <h3>Bản đồ không khả dụng</h3>
-                <p>Vui lòng kiểm tra:</p>
-                <ul style="text-align: left;">
-                    <li>Kết nối mạng</li>
-                    <li>Google Maps API key</li>
-                    <li>Cài đặt billing trong Google Cloud Console</li>
-                </ul>
-            </div>
-        `;
-    }
-}
-
-// Hiển thị lỗi billing cụ thể
-function showBillingError() {
-    const mapContainer = document.getElementById("map");
-    if (mapContainer) {
-        mapContainer.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: #fff3cd; color: #856404; flex-direction: column; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px;">
-                <h3 style="color: #856404; margin-bottom: 15px;">⚠️ Google Maps Billing Issue</h3>
+            <div style="
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                height: 100%; 
+                background: #fff3cd; 
+                color: #856404; 
+                flex-direction: column; 
+                border: 1px solid #ffeaa7; 
+                border-radius: 8px; 
+                padding: 20px;
+                font-family: 'Inter', sans-serif;
+            ">
+                <h3 style="color: #856404; margin-bottom: 15px;">⚠️ Lỗi tải bản đồ</h3>
                 <p style="text-align: center; margin-bottom: 15px;">
-                    <strong>Bản đồ cần cài đặt billing để hoạt động đầy đủ.</strong>
+                    <strong>${errorMessage}</strong>
                 </p>
-                <div style="background: white; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-                    <p style="margin: 5px 0;"><strong>Cách khắc phục:</strong></p>
-                    <ol style="text-align: left; margin: 10px 0; padding-left: 20px;">
-                        <li>Vào <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: #007bff;">Google Cloud Console</a></li>
-                        <li>Chọn project và enable billing</li>
-                        <li>Enable "Maps JavaScript API" và "Places API"</li>
-                        <li>Refresh trang này</li>
-                    </ol>
-                </div>
                 <p style="font-size: 14px; color: #6c757d;">
-                    Bản đồ vẫn có thể hoạt động với chức năng cơ bản, nhưng một số tính năng nâng cao có thể bị hạn chế.
+                    Vui lòng kiểm tra kết nối mạng và thử lại.
                 </p>
             </div>
         `;
     }
 }
 
-// Lấy vị trí hiện tại
+// =====================================================
+// GET CURRENT LOCATION (GEOLOCATION API)
+// =====================================================
 async function getCurrentLocation() {
     if (!navigator.geolocation || !isMapLoaded) {
-        alert("Không thể lấy vị trí hiện tại.");
+        alert("Trình duyệt không hỗ trợ geolocation hoặc map chưa load.");
         return;
     }
     
+    console.log('📍 Getting current location...');
+    
     try {
         const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
         });
         
-        const userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
-        map.setCenter(userLocation);
-        map.setZoom(14);
+        const userLocation = [position.coords.latitude, position.coords.longitude];
         
+        // Remove old user marker if exists
+        if (userMarker) {
+            markerLayer.removeLayer(userMarker);
+        }
+        
+        // Add new user marker (blue dot)
+        userMarker = L.marker(userLocation, { icon: userIcon })
+            .addTo(markerLayer)
+            .bindPopup(`
+                <div style="text-align: center; font-family: 'Inter', sans-serif;">
+                    <strong style="color: #007bff;">📍 Vị trí của bạn</strong>
+                </div>
+            `)
+            .openPopup();
+        
+        // Pan and zoom to user location
+        map.setView(userLocation, 14);
+        
+        console.log('✅ User location found:', userLocation);
+        
+        // Calculate distances to all stations
+        calculateDistances(position.coords.latitude, position.coords.longitude);
         updateStationList();
+        
     } catch (error) {
+        console.error('❌ Geolocation error:', error);
         alert("Không thể lấy vị trí hiện tại: " + error.message);
     }
 }
 
-// Khởi tạo tính năng tìm kiếm
+// Calculate distances from user to all stations
+function calculateDistances(userLat, userLng) {
+    markers.forEach(({ station }) => {
+        const distance = getDistance(userLat, userLng, station.lat, station.lng);
+        station.distance = distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`;
+    });
+}
+
+// Haversine formula to calculate distance between two coordinates
+function getDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+// =====================================================
+// SEARCH & FILTER FUNCTIONALITY
+// =====================================================
 function initSearchFunctionality(stations) {
     const searchInput = document.getElementById("searchInput");
     if (!searchInput) return;
@@ -276,16 +413,33 @@ function initSearchFunctionality(stations) {
     });
 }
 
-// Cập nhật danh sách trạm
+function filterMarkers(stations) {
+    const searchQuery = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+
+    markers.forEach(({ marker, station }) => {
+        const matchesSearch = !searchQuery || 
+            station.name.toLowerCase().includes(searchQuery) || 
+            station.address.toLowerCase().includes(searchQuery);
+        
+        if (matchesSearch) {
+            markerLayer.addLayer(marker);
+        } else {
+            markerLayer.removeLayer(marker);
+        }
+    });
+}
+
+// =====================================================
+// UPDATE STATION LIST SIDEBAR
+// =====================================================
 function updateStationList() {
     const listContent = document.getElementById("listContent");
     if (!listContent) return;
     
     let html = '';
-    const visibleStations = markers.filter(item => item.marker.map);
+    const visibleStations = markers.filter(item => markerLayer.hasLayer(item.marker));
 
-    visibleStations.forEach((item) => {
-        const station = item.station;
+    visibleStations.forEach(({ station }) => {
         const isAvailable = station.status === 'available';
 
         html += `
@@ -293,14 +447,14 @@ function updateStationList() {
                 <div class="station-header">
                     <h4>${station.name}</h4>
                     <span class="status ${station.status.toLowerCase()}">
-                        ${isAvailable ? 'Trống' : 'Đang dùng'}
+                        ${isAvailable ? '✓ Trống' : '✗ Đang dùng'}
                     </span>
                 </div>
                 <p class="address">${station.address}</p>
                 <p class="details">
                     <i class="fa-solid fa-bolt"></i> ${station.connector} | ${station.power}kW | ${station.price}đ/kWh
                 </p>
-                <p class="distance">${station.distance}</p>
+                <p class="distance">📍 ${station.distance}</p>
                 <div class="action-row">
                     ${isAvailable 
                         ? `<button data-id="${station.id}" class="btn-book" onclick="startBooking('${station.id}')">Đặt chỗ</button>`
@@ -316,24 +470,9 @@ function updateStationList() {
     if (countEl) countEl.textContent = `${visibleStations.length} trạm`;
 }
 
-// Hàm lọc marker
-function filterMarkers(stations) {
-    const searchQuery = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
-
-    markers.forEach(({ marker, station }) => {
-        const matchesSearch = !searchQuery || 
-            station.name.toLowerCase().includes(searchQuery) || 
-            station.address.toLowerCase().includes(searchQuery);
-        
-        if (matchesSearch) {
-            marker.map = map;
-        } else {
-            marker.map = null;
-        }
-    });
-}
-
-// Bắt đầu đặt chỗ
+// =====================================================
+// BOOKING FUNCTIONALITY
+// =====================================================
 async function startBooking(stationId) {
     const token = localStorage.getItem('jwt_token');
     
@@ -350,11 +489,9 @@ async function startBooking(stationId) {
         return;
     }
 
-    // Show booking modal
     showBookingModal(entry.station);
 }
 
-// Show booking modal
 function showBookingModal(station) {
     const modal = document.createElement('div');
     modal.id = 'bookingModal';
@@ -372,11 +509,11 @@ function showBookingModal(station) {
     `;
 
     const now = new Date();
-    const minTime = new Date(now.getTime() + 30 * 60000); // 30 minutes from now
-    const maxTime = new Date(now.getTime() + 24 * 60 * 60000); // 24 hours from now
+    const minTime = new Date(now.getTime() + 30 * 60000);
+    const maxTime = new Date(now.getTime() + 24 * 60 * 60000);
 
     modal.innerHTML = `
-        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%;">
+        <div style="background: white; padding: 30px; border-radius: 16px; max-width: 500px; width: 90%; font-family: 'Inter', sans-serif;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0; font-size: 24px; font-weight: 700;">Đặt chỗ</h2>
                 <button onclick="closeBookingModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
@@ -423,9 +560,6 @@ function showBookingModal(station) {
                         required
                         style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;"
                     />
-                    <small style="color: #666; display: block; margin-top: 5px;">
-                        Từ 15 phút đến 8 giờ
-                    </small>
                 </div>
 
                 <div style="margin-bottom: 20px;">
@@ -464,14 +598,12 @@ function showBookingModal(station) {
 
     document.body.appendChild(modal);
 
-    // Handle form submission
     document.getElementById('bookingForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         await submitBooking(station.id);
     });
 }
 
-// Close booking modal
 function closeBookingModal() {
     const modal = document.getElementById('bookingModal');
     if (modal) {
@@ -479,7 +611,6 @@ function closeBookingModal() {
     }
 }
 
-// Submit booking
 async function submitBooking(stationId) {
     const bookingTime = document.getElementById('bookingTime').value;
     const duration = document.getElementById('duration').value;
@@ -506,11 +637,8 @@ async function submitBooking(stationId) {
             closeBookingModal();
             alert('Đặt chỗ thành công! Bạn có thể xem chi tiết trong mục Lịch sử.');
             
-            // Optionally reload stations to update availability
-            if (map) {
-                const stations = await loadStationsFromAPI();
-                updateStationList();
-            }
+            const stations = await loadStationsFromAPI();
+            updateStationList();
         } else {
             document.getElementById('bookingError').style.display = 'block';
             document.getElementById('bookingError').textContent = data.message || 'Không thể đặt chỗ. Vui lòng thử lại.';
@@ -522,13 +650,23 @@ async function submitBooking(stationId) {
     }
 }
 
-// Make functions globally available
+// Áp dụng kết quả booking từ localStorage (nếu có)
+function applyBookingFromStorage() {
+    console.log('Checking for booking results in localStorage...');
+}
+
+// =====================================================
+// GLOBAL EXPORTS
+// =====================================================
 window.startBooking = startBooking;
 window.closeBookingModal = closeBookingModal;
+window.getCurrentLocation = getCurrentLocation;
 
-// Expose global functions
-if (typeof window !== 'undefined') {
-    window.initMap = initMap;
-    window.startBooking = startBooking;
-    console.log('Map functions exposed globally');
+// Initialize when DOM loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMap);
+} else {
+    initMap();
 }
+
+console.log('✅ map.js loaded - Leaflet + OpenStreetMap ready!');

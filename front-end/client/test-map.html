@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Leaflet Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            color: white;
+        }
+        #map {
+            width: 100%;
+            height: 600px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #16213e;
+            border-radius: 8px;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+    <h1>🗺️ Test Leaflet Map - EV Charging Station</h1>
+    
+    <div id="map"></div>
+    
+    <div class="status">
+        <h3>Status:</h3>
+        <div id="status">Loading...</div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script>
+        const statusDiv = document.getElementById('status');
+        
+        function log(message, isError = false) {
+            console.log(message);
+            statusDiv.innerHTML += `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
+        }
+
+        try {
+            log('✅ Leaflet loaded: ' + (typeof L !== 'undefined'));
+            
+            if (typeof L === 'undefined') {
+                throw new Error('Leaflet library not found!');
+            }
+
+            // Create map
+            const map = L.map('map').setView([10.7769, 106.7009], 12);
+            log('✅ Map created successfully');
+
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+            log('✅ Tile layer added');
+
+            // Test stations
+            const stations = [
+                { name: "Trạm sạc Bình Thạnh 1", lat: 10.8231, lng: 106.6297, status: 'available' },
+                { name: "Trạm sạc Quận 1", lat: 10.7769, lng: 106.7009, status: 'available' },
+                { name: "Trạm Sạc Sài Gòn 3", lat: 10.770, lng: 106.690, status: 'occupied' }
+            ];
+
+            // Create custom icons
+            const availableIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background: #00FF00;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50% 50% 50% 0;
+                    transform: rotate(-45deg);
+                    border: 3px solid #FFFFFF;
+                    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    <span style="transform: rotate(45deg); font-size: 16px;">⚡</span>
+                </div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
+            });
+
+            const occupiedIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background: #FF0000;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50% 50% 50% 0;
+                    transform: rotate(-45deg);
+                    border: 3px solid #FFFFFF;
+                    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    <span style="transform: rotate(45deg); font-size: 16px;">🔌</span>
+                </div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
+            });
+
+            // Add markers
+            stations.forEach(station => {
+                const icon = station.status === 'available' ? availableIcon : occupiedIcon;
+                const marker = L.marker([station.lat, station.lng], { icon: icon }).addTo(map);
+                
+                marker.bindPopup(`
+                    <div style="font-family: Arial; min-width: 200px;">
+                        <h3 style="margin: 0 0 10px 0; color: #333;">${station.name}</h3>
+                        <p style="margin: 5px 0; color: #666;">
+                            <strong>Trạng thái:</strong> 
+                            <span style="color: ${station.status === 'available' ? '#4CAF50' : '#f44336'};">
+                                ${station.status === 'available' ? '✓ Trống' : '✗ Đang dùng'}
+                            </span>
+                        </p>
+                    </div>
+                `);
+            });
+
+            log(`✅ Added ${stations.length} markers`);
+            log('🎉 <strong>MAP LOADED SUCCESSFULLY!</strong>');
+
+        } catch (error) {
+            log('❌ Error: ' + error.message, true);
+            console.error(error);
+        }
+    </script>
+</body>
+</html>

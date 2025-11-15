@@ -1,5 +1,7 @@
 // Enhanced Navbar with User Dropdown
-const API_BASE_URL = 'http://localhost:8080/api';
+// Sử dụng window.API_BASE_URL để tránh conflict với các file khác
+window.API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
+
 
 class Navbar {
     constructor() {

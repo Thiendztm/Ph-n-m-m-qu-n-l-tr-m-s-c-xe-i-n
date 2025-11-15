@@ -1,7 +1,6 @@
-/* http://meyerweb.com/eric/tools/css/reset/ 
-   v2.0 | 20110126
-   License: none (public domain)
-*/
+/* -------------------------------------------------------------------------- */
+/* === PHẦN CSS RESET CỦA ERIC MEYER (GIỮ NGUYÊN) === */
+/* -------------------------------------------------------------------------- */
 
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
@@ -16,33 +15,89 @@ article, aside, canvas, details, embed,
 figure, figcaption, footer, header, hgroup, 
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
 }
-/* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure, 
 footer, header, hgroup, menu, nav, section {
-	display: block;
+    display: block;
 }
 body {
-	line-height: 1;
+    line-height: 1;
 }
 ol, ul {
-	list-style: none;
+    list-style: none;
 }
 blockquote, q {
-	quotes: none;
+    quotes: none;
 }
 blockquote:before, blockquote:after,
 q:before, q:after {
-	content: '';
-	content: none;
+    content: '';
+    content: none;
 }
 table {
-	border-collapse: collapse;
-	border-spacing: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* === NÂNG CẤP BASE STYLES & NORMALIZE HIỆN ĐẠI === */
+/* -------------------------------------------------------------------------- */
+
+html {
+    /* Thiết lập kích thước font cơ sở (ví dụ: 16px) */
+    font-size: 100%; 
+    /* Dùng rem cho khả năng truy cập tốt hơn */
+    font-family: sans-serif; /* Đảm bảo font dự phòng */
+    text-rendering: optimizeLegibility; /* Tăng chất lượng hiển thị chữ */
+    -webkit-text-size-adjust: 100%; /* Ngăn chặn iOS tự động điều chỉnh font */
+}
+
+/* Kỹ thuật Box Sizing Quan trọng */
+*, *::before, *::after {
+    box-sizing: border-box; 
+    /* Đảm bảo padding và border không làm tăng kích thước tổng của phần tử, 
+       giúp bố cục dễ đoán và dễ quản lý hơn. */
+}
+
+body {
+    /* Đặt line-height tiêu chuẩn để cải thiện khả năng đọc */
+    line-height: 1.5; 
+    /* Khử răng cưa cho font chữ trên các hệ điều hành */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Thiết lập màu chữ mặc định */
+    color: #333; 
+}
+
+/* Cải tiến cho hình ảnh */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block; /* Loại bỏ khoảng trắng dưới inline image */
+}
+
+/* Cải tiến cho form controls */
+button, input, optgroup, select, textarea {
+    font-family: inherit; /* Kế thừa font của body */
+    font-size: 100%;
+    line-height: 1.15;
+    margin: 0; /* Loại bỏ margin mặc định */
+}
+
+/* Cải tiến cho link */
+a {
+    text-decoration: none; /* Mặc định loại bỏ gạch chân */
+    color: inherit; /* Kế thừa màu chữ mặc định */
+    cursor: pointer;
+    /* Transition mặc định cho mọi link để tạo hiệu ứng mượt mà khi hover */
+    transition: color 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+a:hover {
+    opacity: 0.8; /* Hiệu ứng mờ nhẹ khi hover */
 }
