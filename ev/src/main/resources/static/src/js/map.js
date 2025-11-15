@@ -1,14 +1,16 @@
-function tram(name, lat, lng, connector, status, power, price, address, distance) {
+function tram(name, lat, lng, connector, status, power, price, address, distance, stationId, totalChargers, availableChargers) {
     this.name = name;
     this.lat = lat;
     this.lng = lng;
-    this.id = `${lat},${lng}`;
+    this.id = (stationId !== undefined && stationId !== null) ? stationId : `${lat},${lng}`;
     this.connector = connector;
     this.status = status;
     this.power = power;
     this.price = price;
     this.address = address;
     this.distance = distance;
+    this.totalChargers = totalChargers || 0;
+    this.availableChargers = availableChargers || 0;
 
     this.hienThiThongTin = function() {
         console.log(`--- Thông tin trạm sạc ---`);
@@ -103,49 +105,75 @@ function initIcons() {
     });
 }
 
+// Simple inline warning renderer for station loading issues
+function showStationsWarning(message) {
+    try {
+        const list = document.getElementById('listContent');
+        if (list) {
+            const note = document.createElement('div');
+            note.innerHTML = `
+                <div style="
+                    padding: 12px 14px; margin-bottom: 12px;
+                    background: #fff3cd; color: #856404;
+                    border: 1px solid #ffeeba; border-radius: 8px;
+                    font-family: 'Inter', sans-serif; font-size: 14px;">
+                    ⚠️ ${message}
+                </div>`;
+            list.prepend(note);
+        }
+    } catch(e) { /* no-op */ }
+}
+
 // =====================================================
 // LOAD STATIONS FROM BACKEND API
 // =====================================================
 async function loadStationsFromAPI() {
     try {
         const response = await fetch(`${API_BASE_URL}/stations`);
+        if (!response.ok) {
+            throw new Error(`Tải trạm thất bại (HTTP ${response.status})`);
+        }
         const data = await response.json();
         
-        if (data.success && data.stations) {
+        if (data && Array.isArray(data.stations)) {
             return data.stations.map(station => {
-                const firstCharger = station.chargers && station.chargers.length > 0 
-                    ? station.chargers[0] 
-                    : null;
-                
+                const connector = station.connectorTypes && Object.keys(station.connectorTypes).length > 0
+                    ? Object.keys(station.connectorTypes)[0]
+                    : 'Type 2';
+
                 return new tram(
                     station.name,
                     station.latitude,
                     station.longitude,
-                    firstCharger?.connectorType || 'Type 2',
+                    connector,
                     station.availableChargers > 0 ? 'available' : 'occupied',
-                    firstCharger?.powerCapacity || 50,
-                    firstCharger?.pricePerKwh || 3500,
+                    50,
+                    3500,
                     station.address,
-                    '0km'
+                    '0km',
+                    station.id,
+                    station.totalChargers || 0,
+                    station.availableChargers || 0
                 );
             });
         } else {
-            console.warn('No stations found, using fallback data');
-            return getFallbackStations();
+            console.warn('Định dạng API không hợp lệ: thiếu mảng stations');
+            showStationsWarning('Không đọc được danh sách trạm từ máy chủ.');
+            return [];
         }
     } catch (error) {
         console.error('Error loading stations from API:', error);
-        console.warn('Using fallback station data');
-        return getFallbackStations();
+        showStationsWarning(error.message || 'Không thể tải danh sách trạm.');
+        return [];
     }
 }
 
 // Fallback stations if API fails
 function getFallbackStations() {
     return [
-        new tram("Trạm sạc Bình Thạnh 1", 10.8231, 106.6297, "CCS", "available", 50, 3500, "123 Nguyễn Văn Cừ, Bình Thạnh, TP.HCM", "1.2km"),
-        new tram("Trạm sạc Quận 1", 10.7769, 106.7009, "AC", "available", 75, 4000, "789 Nguyễn Huệ, Q.1, TP.HCM", "2.1km"),
-        new tram("Trạm Sạc Sài Gòn 3", 10.770, 106.690, "CHAdeMO", "available", 100, 2500, "3 Pasteur, Q.1, TP.HCM", "0.8km")
+        new tram("Trạm sạc Bình Thạnh 1", 10.8231, 106.6297, "CCS", "available", 50, 3500, "123 Nguyễn Văn Cừ, Bình Thạnh, TP.HCM", "1.2km", null, 6, 4),
+        new tram("Trạm sạc Quận 1", 10.7769, 106.7009, "AC", "available", 75, 4000, "789 Nguyễn Huệ, Q.1, TP.HCM", "2.1km", null, 8, 6),
+        new tram("Trạm Sạc Sài Gòn 3", 10.770, 106.690, "CHAdeMO", "available", 100, 2500, "3 Pasteur, Q.1, TP.HCM", "0.8km", null, 5, 3)
     ];
 }
 
@@ -219,6 +247,7 @@ async function initMap() {
                             </span>
                         </p>
                         <p style="margin: 6px 0;"><strong>Công suất:</strong> ${station.power}kW</p>
+                        <p style="margin: 6px 0;"><strong>Sạc khả dụng:</strong> ${station.availableChargers}/${station.totalChargers}</p>
                         <p style="margin: 6px 0;"><strong>Giá:</strong> ${station.price}đ/kWh</p>
                         <p style="margin: 6px 0;"><strong>Địa chỉ:</strong> ${station.address}</p>
                     </div>
@@ -454,6 +483,9 @@ function updateStationList() {
                 <p class="details">
                     <i class="fa-solid fa-bolt"></i> ${station.connector} | ${station.power}kW | ${station.price}đ/kWh
                 </p>
+                <p class="details" style="margin:0; color:var(--muted); font-size:1.3rem;">
+                    <i class="fa-solid fa-charging-station"></i> Khả dụng: ${station.availableChargers}/${station.totalChargers}
+                </p>
                 <p class="distance">📍 ${station.distance}</p>
                 <div class="action-row">
                     ${isAvailable 
@@ -474,7 +506,8 @@ function updateStationList() {
 // BOOKING FUNCTIONALITY
 // =====================================================
 async function startBooking(stationId) {
-    const token = localStorage.getItem('jwt_token');
+    // Use accessToken saved by auth.js
+    const token = localStorage.getItem('accessToken');
     
     if (!token) {
         if (confirm('Bạn cần đăng nhập để đặt chỗ. Chuyển đến trang đăng nhập?')) {
@@ -483,7 +516,7 @@ async function startBooking(stationId) {
         return;
     }
 
-    const entry = markers.find(m => m.station.id === stationId);
+    const entry = markers.find(m => String(m.station.id) === String(stationId));
     if (!entry || entry.station.status === 'busy') {
         alert("Trạm đang bận hoặc không tồn tại!");
         return;
@@ -611,24 +644,57 @@ function closeBookingModal() {
     }
 }
 
+function formatDateTime(date) {
+    const pad = n => String(n).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const MM = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const HH = pad(date.getHours());
+    const mm = pad(date.getMinutes());
+    const ss = pad(date.getSeconds());
+    return `${yyyy}-${MM}-${dd} ${HH}:${mm}:${ss}`;
+}
+
 async function submitBooking(stationId) {
     const bookingTime = document.getElementById('bookingTime').value;
     const duration = document.getElementById('duration').value;
     const notes = document.getElementById('notes').value;
-    const token = localStorage.getItem('jwt_token');
+    // Use accessToken saved by auth.js
+    const token = localStorage.getItem('accessToken');
 
     try {
-        const response = await fetch(`${API_BASE_URL}/stations/${stationId}/reserve`, {
+        // Get available chargers
+        const availRes = await fetch(`${API_BASE_URL}/stations/${stationId}/available-chargers`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const availData = await availRes.json();
+        const chargers = (availData && availData.chargers) ? availData.chargers : [];
+
+        if (!chargers.length) {
+            const errBox = document.getElementById('bookingError');
+            if (errBox) {
+                errBox.style.display = 'block';
+                errBox.textContent = 'Không có điểm sạc khả dụng tại trạm này.';
+            }
+            return;
+        }
+
+        const chargerId = chargers[0].id;
+
+        const startDate = new Date(bookingTime);
+        const endDate = new Date(startDate.getTime() + parseInt(duration, 10) * 60000);
+        const payload = {
+            startTime: formatDateTime(startDate),
+            endTime: formatDateTime(endDate)
+        };
+
+        const response = await fetch(`${API_BASE_URL}/stations/${stationId}/chargers/${chargerId}/book`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({
-                reservationTime: bookingTime,
-                estimatedDuration: parseInt(duration),
-                notes: notes
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await response.json();
@@ -641,7 +707,7 @@ async function submitBooking(stationId) {
             updateStationList();
         } else {
             document.getElementById('bookingError').style.display = 'block';
-            document.getElementById('bookingError').textContent = data.message || 'Không thể đặt chỗ. Vui lòng thử lại.';
+            document.getElementById('bookingError').textContent = (data && (data.message || data.error)) || 'Không thể đặt chỗ. Vui lòng thử lại.';
         }
     } catch (error) {
         console.error('Error booking station:', error);

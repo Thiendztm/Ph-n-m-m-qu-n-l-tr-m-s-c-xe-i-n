@@ -53,7 +53,7 @@ html {
     /* Thiết lập kích thước font cơ sở (ví dụ: 16px) */
     font-size: 100%; 
     /* Dùng rem cho khả năng truy cập tốt hơn */
-    font-family: sans-serif; /* Đảm bảo font dự phòng */
+    font-family: "Inter", sans-serif; /* (đã sửa) */
     text-rendering: optimizeLegibility; /* Tăng chất lượng hiển thị chữ */
     -webkit-text-size-adjust: 100%; /* Ngăn chặn iOS tự động điều chỉnh font */
 }

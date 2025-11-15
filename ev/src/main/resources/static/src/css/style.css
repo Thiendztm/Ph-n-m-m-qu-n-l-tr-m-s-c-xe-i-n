@@ -1,4 +1,5 @@
-:root {
+@charset "UTF-8";
+:root { /* (đã sửa - giữ nguyên, chuẩn bị thêm font rules) */
   --bg: #0b0f19;
   --panel: #1a2338;
   --card: #1e2a4d;
@@ -26,18 +27,44 @@
 html {
   scroll-behavior: smooth;
   font-size: 62.5%;
-}
+} /* (đã sửa - không đổi logic) */
 .container {
   width: 1170px;
   max-width: calc(1170 - 48px);
   margin: 0 auto;
 }
+
+/* === Global Inter Font Enforcement (đã sửa) === */
+* {
+  font-family: "Inter", sans-serif !important;
+}
+
+/* Preserve Font Awesome icons (đã sửa) */
+.fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands {
+  font-family: "Font Awesome 6 Free" !important;
+}
+.fab {
+  font-family: "Font Awesome 6 Brands" !important;
+}
+/* === End Global Font === */
+
 body {
-  font-size: 1.6rem;
-  font-family: "Inter", sans-serif;
+  font-size: 1.6rem; /* (đã sửa - vẫn Inter) */
   background: radial-gradient(1200px 800px at 10% -10%, #0f1430, transparent), radial-gradient(1000px 600px at 90% -20%, #0b1430, transparent), var(--bg);
   color: var(--text);
+  font-family: "Inter", sans-serif !important; /* (đã sửa) */
 }
+
+/* Leaflet Components Font (đã sửa) */
+.leaflet-container,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-content,
+.leaflet-popup-tip,
+.leaflet-marker-icon,
+.leaflet-tooltip {
+  font-family: "Inter", sans-serif !important;
+}
+
 a {
   text-decoration: none;
 }
