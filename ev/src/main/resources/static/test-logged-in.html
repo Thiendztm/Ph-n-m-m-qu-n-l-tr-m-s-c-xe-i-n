@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Wallet - Trang chủ (Đã đăng nhập)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/css/reset.css">
+    <link rel="stylesheet" href="./src/css/style.css">
+    <link rel="shortcut icon" href="./src/img/tachnen.png" type="image/x-icon">
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .demo-banner {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .demo-content {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .demo-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .demo-card h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+        
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .feature-text {
+            flex: 1;
+        }
+        
+        .feature-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .feature-desc {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .test-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .test-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .test-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .test-btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .test-btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .test-btn-info {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+        }
+        
+        .test-btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-banner">
+        🎉 DEMO: Giao diện Navigation sau khi đăng nhập - Click vào avatar để xem dropdown menu!
+    </div>
+
+    <!-- Header với navbar mới -->
+    <header class="header">
+        <div class="container">
+            <div class="header__top">
+                <a href="index.html" class="logo-container">
+                    <img src="./src/img/tachnen.png" alt="Logo EV">
+                    <h1>EV</h1>
+                </a>
+                <i class="fa-solid fa-bars menu_icon" id="menu-icon"></i>
+                <nav class="header__nav">
+                    <ul class="nav__list">
+                        <!-- Navbar sẽ được render bởi navbar.js -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="demo-content">
+            <div class="demo-card">
+                <h2>✨ Điểm mới trong Navigation Bar</h2>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Avatar với chữ cái đầu</div>
+                            <div class="feature-desc">Hiển thị 2 chữ cái đầu tên user</div>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Số dư ví real-time</div>
+                            <div class="feature-desc">Cập nhật tự động từ API</div>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-bars"></i>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Dropdown menu đẹp</div>
+                            <div class="feature-desc">Glass morphism effect</div>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Nút nạp tiền nhanh</div>
+                            <div class="feature-desc">Trong dropdown wallet section</div>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Link gói thuê bao</div>
+                            <div class="feature-desc">Truy cập nhanh subscription</div>
+                        </div>
+                    </div>
+
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-screen"></i>
+                        </div>
+                        <div class="feature-text">
+                            <div class="feature-title">Responsive design</div>
+                            <div class="feature-desc">Tự động ẩn text trên mobile</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-card">
+                <h2>🧪 Hướng dẫn Test</h2>
+                <ol style="line-height: 2; color: #555;">
+                    <li><strong>Nhìn lên thanh navigation:</strong> Bạn sẽ thấy avatar với tên "Test User" và số dư ví</li>
+                    <li><strong>Click vào avatar:</strong> Dropdown menu sẽ hiện ra với wallet section ở đầu</li>
+                    <li><strong>Xem wallet section:</strong> Hiển thị số dư 125,000đ và nút "+" để nạp tiền</li>
+                    <li><strong>Các menu items:</strong> Hồ sơ, Lịch sử, Gói thuê bao, Nạp tiền, Đăng xuất</li>
+                    <li><strong>Hover effects:</strong> Tất cả items đều có animation khi hover</li>
+                    <li><strong>Resize browser:</strong> Trên mobile, chỉ hiện avatar không có text</li>
+                </ol>
+
+                <div class="test-buttons">
+                    <a href="./login.html" class="test-btn test-btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Thử đăng nhập thật
+                    </a>
+                    <a href="./subscription-plans.html" class="test-btn test-btn-success">
+                        <i class="fas fa-crown"></i>
+                        Xem gói thuê bao
+                    </a>
+                    <a href="./wallet-topup.html" class="test-btn test-btn-info">
+                        <i class="fas fa-wallet"></i>
+                        Nạp tiền vào ví
+                    </a>
+                    <button class="test-btn test-btn-primary" onclick="testLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Test Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Simulate logged in user
+        localStorage.setItem('accessToken', 'mock-jwt-token-12345');
+        localStorage.setItem('userName', 'Nguyễn Văn Test');
+        localStorage.setItem('userEmail', 'test@evwallet.com');
+        localStorage.setItem('userRole', 'driver');
+        localStorage.setItem('userId', '123');
+
+        function testLogout() {
+            if (confirm('Xóa dữ liệu test và reload trang?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // Show instruction after page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const userBtn = document.getElementById('userMenuBtn');
+                if (userBtn) {
+                    // Add pulsing animation to user button
+                    userBtn.style.animation = 'pulse 2s infinite';
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        @keyframes pulse {
+                            0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+                            50% { box-shadow: 0 0 0 15px rgba(102, 126, 234, 0); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }, 1000);
+        });
+    </script>
+
+    <!-- Load navbar.js để render menu -->
+    <script src="./src/js/navbar.js"></script>
+</body>
+</html>

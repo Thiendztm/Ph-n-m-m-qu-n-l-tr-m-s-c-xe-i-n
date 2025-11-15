@@ -3,115 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập Nhân viên - EV Charging Station</title>
-    <link rel="stylesheet" href="../src/css/reset.css">
-    <link rel="stylesheet" href="../src/css/auth.css">
-    <link rel="stylesheet" href="css/staff.css">
+    <title>Staff Login - EV Charging Station</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/staff-login.css">
 </head>
 <body>
-    <div class="auth-container">
-        <div class="auth-box">
-            <div class="auth-header">
-                <div class="logo">👨‍💼</div>
-                <h1>Đăng nhập Nhân viên</h1>
-                <p>Truy cập bảng điều khiển nhân viên trạm sạc</p>
-            </div>
+    <div class="login-container">
+        <div class="staff-logo">
+            <i class="fas fa-user-tie"></i>
+        </div>
+        
+        <div class="login-header">
+            <h1>Staff Portal</h1>
+            <p>Đăng nhập để truy cập bảng điều khiển</p>
+        </div>
 
-            <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label for="email">Email</label>
+        <form id="loginForm">
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
                     <input 
                         type="email" 
                         id="email" 
-                        name="email" 
-                        placeholder="staff@example.com"
+                        placeholder="staff@evcharging.com"
                         required 
                         autocomplete="email"
                     >
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label for="password">Mật khẩu</label>
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
                     <input 
                         type="password" 
                         id="password" 
-                        name="password" 
-                        placeholder="••••••••"
+                        placeholder="Nhập mật khẩu"
                         required 
                         autocomplete="current-password"
                     >
                 </div>
-
-                <div class="form-options">
-                    <label class="remember-me">
-                        <input type="checkbox" name="remember" id="remember">
-                        <span>Ghi nhớ đăng nhập</span>
-                    </label>
-                    <a href="#" class="forgot-password">Quên mật khẩu?</a>
-                </div>
-
-                <button type="submit" class="btn-primary" id="loginBtn">
-                    Đăng nhập
-                </button>
-
-                <div id="errorMessage" class="error-message" style="display: none;"></div>
-            </form>
-
-            <div class="auth-footer">
-                <a href="../role-selection.html" class="back-link">← Quay lại chọn loại tài khoản</a>
             </div>
-        </div>
+
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" id="remember">
+                    <span>Ghi nhớ đăng nhập</span>
+                </label>
+                <a href="#" class="forgot-password">Quên mật khẩu?</a>
+            </div>
+
+            <button type="submit" class="btn-login" id="loginBtn">
+                Đăng nhập
+            </button>
+
+            <div id="errorMessage" class="error-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorText"></span>
+            </div>
+        </form>
+
+        <a href="../role-selection.html" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Quay lại chọn loại tài khoản
+        </a>
     </div>
 
-    <script type="module">
-        // Import API client
-        import { api, setTokens } from '../admin/js/api-client.js';
-
-        const loginForm = document.getElementById('loginForm');
-        const loginBtn = document.getElementById('loginBtn');
-        const errorMessage = document.getElementById('errorMessage');
-
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            // Show loading
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Đang đăng nhập...';
-            errorMessage.style.display = 'none';
-
-            try {
-                const response = await api.post('/auth/login', {
-                    email,
-                    password
-                });
-
-                // Check if user has CS_STAFF role
-                if (response.role === 'CS_STAFF' || response.role === 'ADMIN') {
-                    // Save tokens
-                    setTokens(response.accessToken, response.refreshToken);
-                    localStorage.setItem('userRole', response.role);
-                    localStorage.setItem('userEmail', response.email);
-
-                    // Redirect to staff dashboard
-                    window.location.href = 'index.html';
-                } else {
-                    // Not authorized
-                    throw new Error('Bạn không có quyền truy cập trang này. Vui lòng sử dụng tài khoản nhân viên.');
-                }
-
-            } catch (error) {
-                console.error('Login error:', error);
-                errorMessage.textContent = error.message || 'Email hoặc mật khẩu không đúng';
-                errorMessage.style.display = 'block';
-                
-                // Reset button
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Đăng nhập';
-            }
-        });
-    </script>
+    <script type="module" src="./js/login-staff.js"></script>
 </body>
 </html>

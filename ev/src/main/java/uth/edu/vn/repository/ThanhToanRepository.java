@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface ThanhToanRepository extends JpaRepository<ThanhToan, Long> {
 
-    List<ThanhToan> findByPhienSac_IdAndStatus(Long phienSacId, String status);
+    List<ThanhToan> findBySessionIdAndStatus(Long sessionId, String status);
     // Note: ThanhToan entity doesn't have userId field, this method needs to be
     // revised
     // List<ThanhToan> findByUserId(Long userId);

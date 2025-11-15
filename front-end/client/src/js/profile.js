@@ -1,3 +1,6 @@
+// Configuration
+const API_BASE_URL = 'http://localhost:8080/api';
+
 // DOM Elements
 const userInfoSection = document.getElementById('userInfoSection');
 const editBtn = document.getElementById('editBtn');
@@ -19,13 +22,33 @@ const editPhone = document.getElementById('editPhone');
 const editVehicle = document.getElementById('editVehicle');
 
 // === Wallet Balance Management ===
-function getWalletBalance() {
-    const balance = localStorage.getItem('walletBalance');
-    return balance ? parseFloat(balance) : 0; // Get from localStorage (updated by API)
+async function fetchAndUpdateWalletBalance() {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) return 0;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/profile/wallet`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const balance = data.balance || 0;
+            localStorage.setItem('walletBalance', balance.toString());
+            return balance;
+        }
+    } catch (error) {
+        console.error('Error fetching wallet balance:', error);
+    }
+    
+    // Fallback to localStorage
+    return parseFloat(localStorage.getItem('walletBalance') || '0');
 }
 
-function updateProfileWalletDisplay() {
-    const balance = getWalletBalance();
+function updateProfileWalletDisplay(balance) {
     if (profileWalletBalance) {
         profileWalletBalance.textContent = balance.toLocaleString('vi-VN') + 'đ';
         
@@ -45,10 +68,12 @@ async function displayProfile() {
         const token = localStorage.getItem('jwt_token');
         if (!token) {
             console.error('No token found');
+            alert('Vui lòng đăng nhập để xem hồ sơ');
+            window.location.href = 'login.html';
             return;
         }
 
-        const response = await fetch('/api/profile', {
+        const response = await fetch(`${API_BASE_URL}/profile`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -66,11 +91,9 @@ async function displayProfile() {
             if (data.sdt) document.getElementById('sdt').value = data.sdt;
             if (data.diaChi) document.getElementById('diaChi').value = data.diaChi;
 
-            // Update wallet balance in localStorage and display
-            if (data.walletBalance !== undefined && data.walletBalance !== null) {
-                localStorage.setItem('walletBalance', data.walletBalance);
-            }
-            updateProfileWalletDisplay();
+            // Fetch and update wallet balance separately
+            const balance = await fetchAndUpdateWalletBalance();
+            updateProfileWalletDisplay(balance);
 
             // Update vehicle data if exists
             if (data.xe && data.xe.length > 0) {
@@ -82,6 +105,10 @@ async function displayProfile() {
                 if (xe.namSanXuat) document.getElementById('vehicle-year').value = xe.namSanXuat;
             }
 
+        } else if (response.status === 401) {
+            alert('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+            localStorage.removeItem('jwt_token');
+            window.location.href = 'login.html';
         } else {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

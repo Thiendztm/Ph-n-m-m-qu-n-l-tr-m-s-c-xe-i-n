@@ -140,7 +140,7 @@ public class CSStaffService {
         // Đã đổi chargingSession.getId() thành chargingSession.getSessionId()
         // để phù hợp với tên trường ID trong Entity PhienSac (giả định)
         List<ThanhToan> existingPayments = thanhToanRepository
-                .findByPhienSac_IdAndStatus(chargingSession.getSessionId(), "PAID");
+                .findBySessionIdAndStatus(chargingSession.getSessionId(), "PAID");
 
         if (!existingPayments.isEmpty()) {
             logger.warn("Payment for session {} already processed.", sessionId);

@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gói dịch vụ - EV Wallet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/css/reset.css">
+    <link rel="stylesheet" href="./src/css/style.css">
+    <link rel="shortcut icon" href="./src/img/tachnen.png" type="image/x-icon">
+    <style>
+        .subscription-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .subscription-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .subscription-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .subscription-header p {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .subscription-plans {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+
+        .plan-card.featured {
+            border: 3px solid #4CAF50;
+        }
+
+        .plan-card.featured::before {
+            content: 'PHỔ BIẾN NHẤT';
+            position: absolute;
+            top: 15px;
+            right: -35px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 5px 40px;
+            font-size: 12px;
+            font-weight: 700;
+            transform: rotate(45deg);
+        }
+
+        .plan-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .plan-icon i {
+            font-size: 28px;
+            color: white;
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .plan-price {
+            font-size: 36px;
+            font-weight: 800;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .plan-price small {
+            font-size: 16px;
+            font-weight: 400;
+            color: #666;
+        }
+
+        .plan-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+            min-height: 40px;
+        }
+
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 25px 0;
+        }
+
+        .plan-features li {
+            padding: 12px 0;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .plan-features li:last-child {
+            border-bottom: none;
+        }
+
+        .plan-features i {
+            color: #4CAF50;
+            font-size: 18px;
+        }
+
+        .plan-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .plan-button.primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .plan-button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .plan-button.secondary {
+            background: white;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+        }
+
+        .plan-button.secondary:hover {
+            background: #f5f5f5;
+        }
+
+        .current-plan-badge {
+            display: inline-block;
+            background: #2196F3;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .comparison-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 50px;
+        }
+
+        .comparison-section h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .comparison-table th {
+            background: #f9f9f9;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .comparison-table td:first-child {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .check-icon {
+            color: #4CAF50;
+            font-size: 20px;
+        }
+
+        .cross-icon {
+            color: #f44336;
+            font-size: 20px;
+        }
+
+        .faq-section {
+            max-width: 800px;
+            margin: 0 auto 50px;
+        }
+
+        .faq-section h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .faq-question {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .faq-question i {
+            color: #4CAF50;
+        }
+
+        .faq-answer {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .subscription-header h1 {
+                font-size: 28px;
+            }
+
+            .subscription-plans {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-section {
+                overflow-x: auto;
+            }
+
+            .comparison-table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header__top">
+                <a href="index.html" class="logo-container">
+                    <img src="./src/img/tachnen.png" alt="Logo EV">
+                    <h1>EV</h1>
+                </a>
+                <i class="fa-solid fa-bars menu_icon" id="menu-icon"></i>
+                <nav class="header__nav">
+                    <ul class="nav__list">
+                        <li class="nav__item"><a class="navbar__link" href="./index.html">Trang chủ</a></li>
+                        <li class="nav__item"><a class="navbar__link" href="./profile.html">Hồ sơ</a></li>
+                        <li class="nav__item"><a class="navbar__link" href="./charging-history.html">Lịch Sử</a></li>
+                        <li class="nav__item"><a class="navbar__link" href="./login.html">Đăng Nhập</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="subscription-container">
+            <div class="subscription-header">
+                <h1><i class="fas fa-crown"></i> Gói Dịch Vụ EV Wallet</h1>
+                <p>Chọn gói phù hợp với nhu cầu sạc điện của bạn. Tiết kiệm hơn với gói thuê bao!</p>
+            </div>
+
+            <!-- Current Plan Info -->
+            <div id="currentPlanInfo" style="text-align: center; margin-bottom: 40px; display: none;">
+                <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 20px; border-radius: 12px; display: inline-block;">
+                    <i class="fas fa-info-circle" style="color: #2196F3; font-size: 24px;"></i>
+                    <p style="margin: 10px 0 0; color: #1976D2; font-weight: 600;">
+                        Gói hiện tại: <span id="currentPlanName">-</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Plans Grid -->
+            <div class="subscription-plans">
+                <!-- Pay-as-you-go -->
+                <div class="plan-card" data-plan="payg">
+                    <div class="plan-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="plan-name">Gói Linh Hoạt</h3>
+                    <div class="plan-price">
+                        3,500đ<small>/kWh</small>
+                    </div>
+                    <p class="plan-description">Thanh toán theo số lượng sạc thực tế. Không cam kết dài hạn.</p>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check-circle"></i> Không phí cố định hàng tháng</li>
+                        <li><i class="fas fa-check-circle"></i> Thanh toán theo kWh sử dụng</li>
+                        <li><i class="fas fa-check-circle"></i> Phù hợp: Sử dụng thỉnh thoảng</li>
+                        <li><i class="fas fa-check-circle"></i> Hủy bất cứ lúc nào</li>
+                    </ul>
+                    <button class="plan-button primary" onclick="selectPlan('payg', 0, 'Gói Linh Hoạt')">
+                        <i class="fas fa-shopping-cart"></i> Sử dụng gói này
+                    </button>
+                </div>
+
+                <!-- Monthly Plan -->
+                <div class="plan-card featured" data-plan="monthly">
+                    <div class="plan-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3 class="plan-name">Gói Tháng</h3>
+                    <div class="plan-price">
+                        1,000,000đ<small>/tháng</small>
+                    </div>
+                    <p class="plan-description">35 lượt sạc/tháng. Tiết kiệm đến 50% so với gói lẻ.</p>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check-circle"></i> 35 lượt sạc không giới hạn kWh</li>
+                        <li><i class="fas fa-check-circle"></i> Tiết kiệm đến 50%</li>
+                        <li><i class="fas fa-check-circle"></i> Phù hợp: Đi làm hàng ngày</li>
+                        <li><i class="fas fa-check-circle"></i> Ưu tiên hỗ trợ 24/7</li>
+                    </ul>
+                    <button class="plan-button primary" onclick="selectPlan('monthly', 1000000, 'Gói Tháng')">
+                        <i class="fas fa-crown"></i> Đăng ký ngay
+                    </button>
+                </div>
+
+                <!-- VIP Plan -->
+                <div class="plan-card" data-plan="vip">
+                    <div class="plan-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3 class="plan-name">Gói VIP</h3>
+                    <div class="plan-price">
+                        2,500,000đ<small>/tháng</small>
+                    </div>
+                    <p class="plan-description">Không giới hạn lượt sạc. Dành cho doanh nghiệp & xe thương mại.</p>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check-circle"></i> Sạc không giới hạn</li>
+                        <li><i class="fas fa-check-circle"></i> Ưu tiên đặt chỗ trước</li>
+                        <li><i class="fas fa-check-circle"></i> Giảm giá 60% mọi giao dịch</li>
+                        <li><i class="fas fa-check-circle"></i> Dedicated support manager</li>
+                        <li><i class="fas fa-check-circle"></i> Báo cáo chi tiết hàng tháng</li>
+                    </ul>
+                    <button class="plan-button primary" onclick="selectPlan('vip', 2500000, 'Gói VIP')">
+                        <i class="fas fa-gem"></i> Nâng cấp VIP
+                    </button>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="comparison-section">
+                <h2>So sánh các gói dịch vụ</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Tính năng</th>
+                            <th>Linh Hoạt</th>
+                            <th>Tháng</th>
+                            <th>VIP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Giá/kWh</td>
+                            <td>3,500đ</td>
+                            <td>~1,800đ</td>
+                            <td>~1,400đ</td>
+                        </tr>
+                        <tr>
+                            <td>Số lượt sạc/tháng</td>
+                            <td>Không giới hạn</td>
+                            <td>35 lượt</td>
+                            <td>Không giới hạn</td>
+                        </tr>
+                        <tr>
+                            <td>Cam kết tối thiểu</td>
+                            <td><i class="cross-icon fas fa-times"></i></td>
+                            <td>1 tháng</td>
+                            <td>3 tháng</td>
+                        </tr>
+                        <tr>
+                            <td>Ưu tiên đặt chỗ</td>
+                            <td><i class="cross-icon fas fa-times"></i></td>
+                            <td><i class="check-icon fas fa-check"></i></td>
+                            <td><i class="check-icon fas fa-check"></i></td>
+                        </tr>
+                        <tr>
+                            <td>Hỗ trợ 24/7</td>
+                            <td>Cơ bản</td>
+                            <td>Ưu tiên</td>
+                            <td>Dedicated</td>
+                        </tr>
+                        <tr>
+                            <td>Báo cáo chi tiết</td>
+                            <td><i class="cross-icon fas fa-times"></i></td>
+                            <td><i class="check-icon fas fa-check"></i></td>
+                            <td><i class="check-icon fas fa-check"></i></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- FAQ -->
+            <div class="faq-section">
+                <h2>Câu hỏi thường gặp</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="fas fa-question-circle"></i>
+                        Tôi có thể đổi gói bất cứ lúc nào không?
+                    </div>
+                    <div class="faq-answer">
+                        Có, bạn có thể nâng cấp gói bất cứ lúc nào. Khi hạ cấp, thay đổi sẽ có hiệu lực từ chu kỳ thanh toán tiếp theo.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="fas fa-question-circle"></i>
+                        Điều gì xảy ra nếu tôi dùng hết số lượt sạc trong gói Tháng?
+                    </div>
+                    <div class="faq-answer">
+                        Bạn vẫn có thể tiếp tục sạc với giá gói Linh Hoạt (3,500đ/kWh) cho đến khi gói được làm mới vào đầu tháng sau.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="fas fa-question-circle"></i>
+                        Tôi có được hoàn tiền khi hủy gói không?
+                    </div>
+                    <div class="faq-answer">
+                        Gói Tháng: Không hoàn tiền nhưng bạn có thể sử dụng đến hết chu kỳ. Gói VIP: Hoàn tiền theo tỷ lệ nếu hủy trước 3 tháng.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <i class="fas fa-question-circle"></i>
+                        Gói VIP có lợi ích gì thêm?
+                    </div>
+                    <div class="faq-answer">
+                        Ngoài sạc không giới hạn, gói VIP còn được hỗ trợ riêng biệt, báo cáo chi tiết, và ưu tiên đặt chỗ trước tại các trạm cao cấp.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <h2>&copy; Copyright © 2025 EV Wallet. All rights reserved.</h2>
+        </div>
+    </footer>
+
+    <script type="module">
+        import api from './src/js/api-client.js';
+        import { showNotification } from './src/js/data-flow.js';
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                if (confirm('Bạn cần đăng nhập để đăng ký gói dịch vụ. Chuyển đến trang đăng nhập?')) {
+                    window.location.href = 'login.html?redirect=subscription-plans.html';
+                }
+                return false;
+            }
+            return true;
+        }
+
+        // Load current subscription
+        async function loadCurrentSubscription() {
+            try {
+                const data = await api.driver.getProfile();
+                if (data.subscription && data.subscription.status === 'ACTIVE') {
+                    document.getElementById('currentPlanName').textContent = data.subscription.planName;
+                    document.getElementById('currentPlanInfo').style.display = 'block';
+
+                    // Mark current plan
+                    const planCard = document.querySelector(`[data-plan="${data.subscription.planType}"]`);
+                    if (planCard) {
+                        const badge = document.createElement('div');
+                        badge.className = 'current-plan-badge';
+                        badge.textContent = 'GÓI HIỆN TẠI';
+                        planCard.querySelector('.plan-name').insertAdjacentElement('beforebegin', badge);
+                        
+                        const button = planCard.querySelector('.plan-button');
+                        button.textContent = 'Gia hạn gói này';
+                        button.classList.remove('primary');
+                        button.classList.add('secondary');
+                    }
+                }
+            } catch (error) {
+                console.log('No current subscription or error loading:', error);
+            }
+        }
+
+        // Select plan
+        window.selectPlan = async function(planType, price, planName) {
+            if (!checkAuth()) return;
+
+            if (confirm(`Xác nhận đăng ký ${planName}?\nPhí: ${price === 0 ? 'Theo kWh sử dụng' : price.toLocaleString('vi-VN') + 'đ/tháng'}`)) {
+                try {
+                    // Mock API call - replace with actual endpoint
+                    const response = await api.admin.createSubscriptionPlan({
+                        planType,
+                        price,
+                        name: planName
+                    });
+
+                    showNotification(`Đăng ký ${planName} thành công!`, 'success');
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } catch (error) {
+                    console.error('Subscription error:', error);
+                    showNotification('Có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
+                }
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (checkAuth()) {
+                loadCurrentSubscription();
+            }
+        });
+    </script>
+</body>
+</html>
