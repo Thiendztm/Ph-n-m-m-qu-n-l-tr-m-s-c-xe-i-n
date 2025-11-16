@@ -107,6 +107,8 @@ function requireAuth() {
 }
 
 // API call helper with automatic token injection
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
+const API_ORIGIN = API_BASE_URL.replace(/\/$/, '').replace(/\/api$/, '');
 async function apiCall(endpoint, options = {}) {
   const auth = checkAuthStatus();
   
@@ -127,7 +129,7 @@ async function apiCall(endpoint, options = {}) {
   };
 
   try {
-    const response = await fetch(`http://localhost:8080${endpoint}`, mergedOptions);
+    const response = await fetch(`${API_ORIGIN}${endpoint}`, mergedOptions);
     
     // Handle 401 Unauthorized (token expired)
     if (response.status === 401) {
@@ -136,7 +138,7 @@ async function apiCall(endpoint, options = {}) {
       if (refreshed) {
         // Retry the original request with new token
         mergedOptions.headers['Authorization'] = `Bearer ${localStorage.getItem('accessToken')}`;
-        return await fetch(`http://localhost:8080${endpoint}`, mergedOptions);
+        return await fetch(`${API_ORIGIN}${endpoint}`, mergedOptions);
       } else {
         // Refresh failed - logout
         handleLogout();
@@ -157,7 +159,7 @@ async function refreshAccessToken() {
   if (!refreshToken) return false;
 
   try {
-    const response = await fetch('http://localhost:8080/api/auth/refresh', {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

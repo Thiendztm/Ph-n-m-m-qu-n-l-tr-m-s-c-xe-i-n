@@ -137,6 +137,7 @@ async function loadStationsFromAPI() {
         
         if (data && Array.isArray(data.stations)) {
             return data.stations.map(station => {
+                // connectorTypes is a map; pick the first key as representative
                 const connector = station.connectorTypes && Object.keys(station.connectorTypes).length > 0
                     ? Object.keys(station.connectorTypes)[0]
                     : 'Type 2';
@@ -672,7 +673,7 @@ async function submitBooking(stationId) {
     const token = localStorage.getItem('accessToken');
 
     try {
-        // Get available chargers
+        // Step 1: get available chargers for this station
         const availRes = await fetch(`${API_BASE_URL}/stations/${stationId}/available-chargers`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -688,8 +689,9 @@ async function submitBooking(stationId) {
             return;
         }
 
-        const chargerId = chargers[0].id;
+        const chargerId = chargers[0].id; // chọn điểm sạc khả dụng đầu tiên
 
+        // Step 2: compute startTime and endTime in required format
         const startDate = new Date(bookingTime);
         const endDate = new Date(startDate.getTime() + parseInt(duration, 10) * 60000);
         const payload = {
@@ -697,6 +699,7 @@ async function submitBooking(stationId) {
             endTime: formatDateTime(endDate)
         };
 
+        // Step 3: book the charger
         const response = await fetch(`${API_BASE_URL}/stations/${stationId}/chargers/${chargerId}/book`, {
             method: 'POST',
             headers: {
@@ -710,10 +713,23 @@ async function submitBooking(stationId) {
 
         if (response.ok && data.success) {
             closeBookingModal();
-            alert('Đặt chỗ thành công! Bạn có thể xem chi tiết trong mục Lịch sử.');
-            
-            const stations = await loadStationsFromAPI();
-            updateStationList();
+            // Lưu thông tin đặt chỗ để trang Thanh toán đọc (đã sửa)
+            const bookingStation = {
+                id: stationId,
+                name: (markers.find(m => String(m.station.id) === String(stationId))?.station.name) || '',
+                connectorDisplay: (markers.find(m => String(m.station.id) === String(stationId))?.station.connector) || '',
+                priceDisplay: `${(markers.find(m => String(m.station.id) === String(stationId))?.station.price || 0).toLocaleString('vi-VN')}đ/kWh`,
+                price: (markers.find(m => String(m.station.id) === String(stationId))?.station.price) || 0
+            };
+            localStorage.setItem('bookingStation', JSON.stringify(bookingStation));
+            // Nếu backend trả về sessionId/bookingId thì lưu lại
+            if (data.sessionId) {
+                localStorage.setItem('currentSessionId', String(data.sessionId));
+            } else if (data.bookingId) {
+                localStorage.setItem('currentBookingId', String(data.bookingId));
+            }
+            // Điều hướng sang trang thanh toán
+            window.location.href = 'payment.html';
         } else {
             document.getElementById('bookingError').style.display = 'block';
             document.getElementById('bookingError').textContent = (data && (data.message || data.error)) || 'Không thể đặt chỗ. Vui lòng thử lại.';

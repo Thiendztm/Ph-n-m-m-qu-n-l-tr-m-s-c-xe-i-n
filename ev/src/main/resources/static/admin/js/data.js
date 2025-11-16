@@ -129,6 +129,12 @@ export async function fetchReports() {
 
 // Initialize data - fetch all data from API
 export async function initializeData() {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    console.warn('No access token found, skipping data initialization');
+    return;
+  }
+  
   await Promise.all([
     fetchStations(),
     fetchUsers(),

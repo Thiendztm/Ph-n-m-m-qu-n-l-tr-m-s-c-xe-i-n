@@ -3,7 +3,7 @@
  * Ensures consistent API calls across Driver, Staff, and Admin roles
  */
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
 
 // ============= Authentication Utilities =============
 export function getAuthToken() {

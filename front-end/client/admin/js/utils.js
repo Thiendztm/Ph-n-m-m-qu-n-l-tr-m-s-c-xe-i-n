@@ -21,6 +21,9 @@ function createModal(title, content, buttons = []) {
     if (modal) modal.remove();
   }
   
+  // Expose globally for onclick handlers
+  window.closeModal = closeModal;
+  
   function showNotification(message, type = 'info') {
     const noti = document.createElement('div');
     noti.className = `notification ${type}`;

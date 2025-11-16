@@ -27,7 +27,7 @@ export function formatDuration(minutes) {
 }
 
 export async function fetchWithAuth(url, options = {}) {
-  const token = localStorage.getItem('jwt_token');
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('jwt_token');
   
   const headers = {
     'Content-Type': 'application/json',

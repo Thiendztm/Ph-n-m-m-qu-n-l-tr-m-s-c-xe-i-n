@@ -5,10 +5,12 @@
 import { state } from './data.js';
 import { loadStations } from './stations.js';
 import { showNotification } from './utils.js';
+import { loadActiveSessions, startAutoRefresh, stopAutoRefresh } from './sessions.js';
+import { showPaymentModal } from './payments.js';
 
 // Check authentication
 function checkAuth() {
-  const token = localStorage.getItem('jwt_token');
+  const token = localStorage.getItem('accessToken') || localStorage.getItem('jwt_token');
   const userRole = localStorage.getItem('userRole');
 
   if (!token) {
@@ -30,7 +32,6 @@ function checkAuth() {
 function setupNavigation() {
   const menuItems = document.querySelectorAll('.menu li');
   const pageTitle = document.getElementById('pageTitle');
-  const content = document.getElementById('content');
 
   menuItems.forEach(item => {
     item.addEventListener('click', () => {
@@ -39,6 +40,11 @@ function setupNavigation() {
       // Update active menu
       menuItems.forEach(mi => mi.classList.remove('active'));
       item.classList.add('active');
+      
+      // Stop auto-refresh when leaving monitoring
+      if (state.currentPage === 'monitoring' && page !== 'monitoring') {
+        stopAutoRefresh();
+      }
       
       // Update page title and content
       state.currentPage = page;
@@ -65,74 +71,173 @@ function renderMonitoringPage() {
   const content = document.getElementById('content');
   
   content.innerHTML = `
-    <div class="page-header">
-      <div class="station-selector">
-        <label for="stationSelect">Chọn trạm sạc:</label>
-        <select id="stationSelect"></select>
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon primary">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Phiên đang hoạt động</div>
+          <div class="stat-value" id="activeSessionsCount">0</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon success">
+          <i class="fas fa-charging-station"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Tổng số charger</div>
+          <div class="stat-value" id="totalChargersCount">0</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon warning">
+          <i class="fas fa-plug"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Charger khả dụng</div>
+          <div class="stat-value" id="availableChargersCount">0</div>
+        </div>
       </div>
     </div>
-    <div id="monitoringContent" class="monitoring-container">
-      <p class="text-muted">Vui lòng chọn trạm sạc để xem thông tin</p>
+
+    <!-- Station Selector -->
+    <div class="card">
+      <div class="form-group">
+        <label for="stationSelect">Chọn trạm sạc:</label>
+        <select id="stationSelect" style="padding: 10px; border-radius: 8px; background: var(--card-2); border: 1px solid var(--border); color: var(--text);">
+          <option value="">-- Chọn trạm --</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Active Sessions Table -->
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+        <h3 style="margin: 0; font-size: 16px; color: #c7d2fe;">Phiên sạc đang hoạt động</h3>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="sessions-table">
+          <thead>
+            <tr>
+              <th>Charger</th>
+              <th>Khách hàng</th>
+              <th>SOC</th>
+              <th>Năng lượng</th>
+              <th>Thời gian</th>
+              <th>Chi phí</th>
+              <th>Trạng thái</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="sessionsTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 40px; color: #666;">
+                <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>
+                Vui lòng chọn trạm sạc để xem phiên hoạt động
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   `;
 
   // Load stations
   loadStations();
+
+  // Setup station selector change handler
+  const stationSelect = document.getElementById('stationSelect');
+  stationSelect.addEventListener('change', (e) => {
+    const stationId = e.target.value;
+    if (stationId) {
+      localStorage.setItem('staffStationId', stationId);
+      loadActiveSessions(stationId);
+      startAutoRefresh(stationId, 10000); // Refresh every 10 seconds
+    } else {
+      stopAutoRefresh();
+    }
+  });
+
+  // Auto-select if station was previously selected
+  const savedStationId = localStorage.getItem('staffStationId');
+  if (savedStationId) {
+    setTimeout(() => {
+      stationSelect.value = savedStationId;
+      stationSelect.dispatchEvent(new Event('change'));
+    }, 500);
+  }
 }
 
 function renderPaymentsPage() {
   const content = document.getElementById('content');
   
   content.innerHTML = `
-    <div class="payments-container">
-      <div class="payment-form card">
-        <h3>Thanh toán tiền mặt</h3>
+    <div class="grid">
+      <div class="card">
+        <div class="header">
+          <span>Xác nhận thanh toán tại chỗ</span>
+        </div>
+        <p style="color: var(--muted); margin: 12px 0;">
+          Nhập mã phiên sạc để xác nhận thanh toán bằng tiền mặt, thẻ hoặc ví điện tử tại trạm.
+        </p>
         <form id="cashPaymentForm">
           <div class="form-group">
             <label>Mã phiên sạc:</label>
-            <input type="number" id="sessionId" required />
+            <input type="text" id="paymentSessionId" placeholder="Ví dụ: SESSION-123" required />
           </div>
-          <div class="form-group">
-            <label>Số tiền:</label>
-            <input type="number" id="amount" required />
-          </div>
-          <div class="form-group">
-            <label>Ghi chú:</label>
-            <textarea id="notes" rows="3"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Xác nhận thanh toán</button>
+          <button type="submit" class="btn primary" style="width: 100%;">
+            <i class="fas fa-search"></i> Tra cứu phiên sạc
+          </button>
         </form>
       </div>
 
-      <div class="recent-payments card">
-        <h3>Thanh toán gần đây</h3>
-        <div id="recentPaymentsList">
-          <p class="text-muted">Chưa có thanh toán nào</p>
+      <div class="card">
+        <div class="header">
+          <span>Hướng dẫn</span>
         </div>
+        <ol style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+          <li>Nhập mã phiên sạc (có thể lấy từ bảng giám sát)</li>
+          <li>Xác nhận thông tin phiên sạc và tổng chi phí</li>
+          <li>Chọn phương thức thanh toán (tiền mặt, thẻ, ví)</li>
+          <li>Nhận tiền và xác nhận thanh toán</li>
+          <li>In hóa đơn cho khách hàng (nếu cần)</li>
+        </ol>
       </div>
     </div>
   `;
 
   // Setup payment form handler
   const form = document.getElementById('cashPaymentForm');
-  form.addEventListener('submit', handleCashPayment);
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const sessionId = document.getElementById('paymentSessionId').value.trim();
+    if (sessionId) {
+      showPaymentModal(sessionId);
+    }
+  });
 }
 
 function renderIncidentsPage() {
   const content = document.getElementById('content');
   
   content.innerHTML = `
-    <div class="incidents-container">
-      <div class="incident-form card">
-        <h3>Báo cáo sự cố mới</h3>
+    <div class="grid">
+      <div class="card">
+        <div class="header">
+          <span>Báo cáo sự cố mới</span>
+        </div>
         <form id="incidentForm">
           <div class="form-group">
             <label>Trạm sạc:</label>
-            <select id="incidentStation" required></select>
+            <select id="incidentStation" required>
+              <option value="">-- Chọn trạm --</option>
+            </select>
           </div>
           <div class="form-group">
-            <label>Điểm sạc:</label>
-            <select id="incidentCharger" required></select>
+            <label>Mã charger (tùy chọn):</label>
+            <input type="text" id="incidentCharger" placeholder="Ví dụ: CHARGER-5" />
           </div>
           <div class="form-group">
             <label>Loại sự cố:</label>
@@ -140,21 +245,37 @@ function renderIncidentsPage() {
               <option value="HARDWARE">Lỗi phần cứng</option>
               <option value="SOFTWARE">Lỗi phần mềm</option>
               <option value="CONNECTIVITY">Lỗi kết nối</option>
+              <option value="SAFETY">An toàn</option>
               <option value="OTHER">Khác</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Mô tả:</label>
-            <textarea id="incidentDescription" rows="4" required></textarea>
+            <label>Mức độ:</label>
+            <select id="incidentSeverity" required>
+              <option value="LOW">Thấp</option>
+              <option value="MEDIUM">Trung bình</option>
+              <option value="HIGH">Cao</option>
+              <option value="CRITICAL">Nghiêm trọng</option>
+            </select>
           </div>
-          <button type="submit" class="btn btn-danger">Gửi báo cáo</button>
+          <div class="form-group">
+            <label>Mô tả chi tiết:</label>
+            <textarea id="incidentDescription" rows="4" placeholder="Mô tả chi tiết sự cố..." required></textarea>
+          </div>
+          <button type="submit" class="btn danger" style="width: 100%;">
+            <i class="fas fa-exclamation-triangle"></i> Gửi báo cáo
+          </button>
         </form>
       </div>
 
-      <div class="incidents-list card">
-        <h3>Sự cố đã báo cáo</h3>
+      <div class="card">
+        <div class="header">
+          <span>Sự cố gần đây</span>
+        </div>
         <div id="incidentsList">
-          <p class="text-muted">Chưa có sự cố nào</p>
+          <p style="color: var(--muted); text-align: center; padding: 20px;">
+            Chưa có sự cố nào được báo cáo
+          </p>
         </div>
       </div>
     </div>
@@ -168,26 +289,17 @@ function renderIncidentsPage() {
   form.addEventListener('submit', handleIncidentReport);
 }
 
-async function handleCashPayment(e) {
-  e.preventDefault();
-  
-  const sessionId = document.getElementById('sessionId').value;
-  const amount = document.getElementById('amount').value;
-  const notes = document.getElementById('notes').value;
-
-  // TODO: Implement API call
-  showNotification('Chức năng thanh toán đang được phát triển', 'warning');
-}
-
 async function handleIncidentReport(e) {
   e.preventDefault();
   
   const stationId = document.getElementById('incidentStation').value;
   const chargerId = document.getElementById('incidentCharger').value;
   const type = document.getElementById('incidentType').value;
+  const severity = document.getElementById('incidentSeverity').value;
   const description = document.getElementById('incidentDescription').value;
 
-  // TODO: Implement API call
+  // TODO: Implement API call to report incident
+  // POST /api/staff/incidents
   showNotification('Chức năng báo cáo sự cố đang được phát triển', 'warning');
 }
 
@@ -195,8 +307,11 @@ async function handleIncidentReport(e) {
 document.getElementById('refreshBtn')?.addEventListener('click', () => {
   switch(state.currentPage) {
     case 'monitoring':
-      if (state.currentStation) {
-        loadStations();
+      const stationId = localStorage.getItem('staffStationId');
+      if (stationId) {
+        loadActiveSessions(stationId);
+      } else {
+        showNotification('Vui lòng chọn trạm sạc', 'warning');
       }
       break;
     default:
@@ -213,5 +328,19 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Display staff name
   const userName = localStorage.getItem('userName') || 'Staff';
-  document.querySelector('.brand span').textContent = `Staff: ${userName}`;
+  const userEmail = localStorage.getItem('userEmail') || '';
+  document.querySelector('.brand span').textContent = userName;
+  
+  // Add logout to topbar
+  const topbar = document.querySelector('.topbar-actions');
+  if (topbar) {
+    const logoutBtn = document.createElement('button');
+    logoutBtn.className = 'btn danger';
+    logoutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Đăng xuất';
+    logoutBtn.onclick = () => {
+      localStorage.clear();
+      window.location.href = '../login.html';
+    };
+    topbar.appendChild(logoutBtn);
+  }
 });

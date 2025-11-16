@@ -784,16 +784,22 @@
                     return;
                 }
 
-                const response = await fetch(`${API_URL}/stations/start-session`, {
+                // Extract stationId and chargerId from QR data
+                const stationId = qrData.stationId;
+                const chargerId = qrData.chargerId || qrData;
+                
+                if (!stationId || !chargerId) {
+                    showError('Mã QR không hợp lệ. Thiếu thông tin trạm hoặc điểm sạc.');
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/stations/${stationId}/chargers/${chargerId}/start-charging`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({
-                        chargerId: qrData.chargerId || qrData,
-                        stationId: qrData.stationId
-                    })
+                    body: JSON.stringify({})
                 });
 
                 const data = await response.json();

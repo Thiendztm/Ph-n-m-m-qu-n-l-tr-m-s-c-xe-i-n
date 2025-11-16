@@ -2,14 +2,14 @@
  * Data management for Staff Dashboard
  */
 
-export const API_BASE_URL = 'http://localhost:8080/api';
+export const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
 
 export const state = {
   currentPage: 'monitoring',
   stations: [],
   currentStation: null,
   sessions: [],
-  token: localStorage.getItem('jwt_token') || ''
+  token: (localStorage.getItem('accessToken') || localStorage.getItem('jwt_token') || '')
 };
 
 export function setCurrentStation(stationId) {

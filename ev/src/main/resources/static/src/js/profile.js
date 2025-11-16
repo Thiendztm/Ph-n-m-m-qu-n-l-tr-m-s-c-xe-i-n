@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
 
 // DOM Elements
 const userInfoSection = document.getElementById('userInfoSection');
@@ -23,7 +23,7 @@ const editVehicle = document.getElementById('editVehicle');
 
 // === Wallet Balance Management ===
 async function fetchAndUpdateWalletBalance() {
-    const token = localStorage.getItem('jwt_token');
+    const token = localStorage.getItem('accessToken') || localStorage.getItem('jwt_token');
     if (!token) return 0;
 
     try {
@@ -65,7 +65,7 @@ function updateProfileWalletDisplay(balance) {
 
 async function displayProfile() {
     try {
-        const token = localStorage.getItem('jwt_token');
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('jwt_token');
         if (!token) {
             console.error('No token found');
             alert('Vui lòng đăng nhập để xem hồ sơ');
@@ -95,18 +95,12 @@ async function displayProfile() {
             const balance = await fetchAndUpdateWalletBalance();
             updateProfileWalletDisplay(balance);
 
-            // Update vehicle data if exists
-            if (data.xe && data.xe.length > 0) {
-                const xe = data.xe[0]; // Get first vehicle
-                if (xe.bienSo) document.getElementById('vehicle-number').value = xe.bienSo;
-                if (xe.loaiXe) document.getElementById('vehicle-type').value = xe.loaiXe;
-                if (xe.dongXe) document.getElementById('vehicle-model').value = xe.dongXe;
-                if (xe.phienBan) document.getElementById('vehicle-version').value = xe.phienBan;
-                if (xe.namSanXuat) document.getElementById('vehicle-year').value = xe.namSanXuat;
-            }
+            // Load vehicle data separately
+            await loadVehicleData();
 
         } else if (response.status === 401) {
             alert('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+            localStorage.removeItem('accessToken');
             localStorage.removeItem('jwt_token');
             window.location.href = 'login.html';
         } else {
@@ -115,6 +109,92 @@ async function displayProfile() {
     } catch (error) {
         console.error('Error displaying profile:', error);
         alert('Có lỗi xảy ra khi tải thông tin hồ sơ');
+    }
+}
+
+// Load vehicle data
+async function loadVehicleData() {
+    try {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('jwt_token');
+        const response = await fetch(`${API_BASE_URL}/profile/vehicle`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const vehicle = await response.json();
+            console.log('Vehicle data received:', vehicle);
+
+            // Update vehicle form fields
+            if (vehicle.licensePlate) {
+                document.getElementById('editLicensePlate').value = vehicle.licensePlate;
+            }
+            if (vehicle.model) document.getElementById('editVehicleModel').value = vehicle.model;
+            if (vehicle.connectorType) document.getElementById('editConnectorType').value = vehicle.connectorType;
+            if (vehicle.batteryCapacity) document.getElementById('editBatteryCapacity').value = vehicle.batteryCapacity;
+
+            // Update vehicle info display with formatted string
+            const vehicleInfo = [];
+            if (vehicle.licensePlate) vehicleInfo.push(vehicle.licensePlate);
+            if (vehicle.model) vehicleInfo.push(vehicle.model);
+            if (vehicle.batteryCapacity) vehicleInfo.push(`${vehicle.batteryCapacity} kWh`);
+            if (vehicleInfo.length > 0) {
+                document.getElementById('displayVehicle').textContent = vehicleInfo.join(' - ');
+            }
+        } else if (response.status === 404) {
+            // No vehicle data yet - this is okay
+            console.log('No vehicle data found');
+        } else if (response.status === 401) {
+            console.error('Unauthorized access to vehicle data');
+        }
+    } catch (error) {
+        console.error('Error loading vehicle data:', error);
+    }
+}
+
+// Save vehicle data
+async function saveVehicleData() {
+    try {
+        const token = localStorage.getItem('accessToken') || localStorage.getItem('jwt_token');
+        const vehicleData = {
+            licensePlate: document.getElementById('editLicensePlate').value,
+            model: document.getElementById('editVehicleModel').value,
+            connectorType: document.getElementById('editConnectorType').value,
+            batteryCapacity: parseFloat(document.getElementById('editBatteryCapacity').value) || 0
+        };
+
+        const response = await fetch(`${API_BASE_URL}/profile/vehicle`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(vehicleData)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Vehicle data saved:', result);
+            
+            // Update display with formatted string
+            const vehicleInfo = [];
+            if (vehicleData.licensePlate) vehicleInfo.push(vehicleData.licensePlate);
+            if (vehicleData.model) vehicleInfo.push(vehicleData.model);
+            if (vehicleData.batteryCapacity) vehicleInfo.push(`${vehicleData.batteryCapacity} kWh`);
+            if (vehicleInfo.length > 0) {
+                document.getElementById('displayVehicle').textContent = vehicleInfo.join(' - ');
+            }
+            return true;
+        } else {
+            throw new Error(`Failed to save vehicle data: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Error saving vehicle data:', error);
+        alert('Có lỗi xảy ra khi lưu thông tin xe');
+        return false;
     }
 }
 
@@ -130,7 +210,7 @@ editBtn.addEventListener('click', () => {
     editName.value = displayName.textContent;
     editEmail.value = displayEmail.textContent;
     editPhone.value = displayPhone.textContent;
-    editVehicle.value = displayVehicle.textContent;
+    // Vehicle fields are already populated by loadVehicleData()
 });
 
 cancelEdit.addEventListener('click', () => {
@@ -152,16 +232,20 @@ editAvatar.addEventListener('change', (e) => {
 });
 
 // Save changes
-editProfileForm.addEventListener('submit', (e) => {
+editProfileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    displayName.textContent = editName.value;
-    displayEmail.textContent = editEmail.value;
-    displayPhone.textContent = editPhone.value;
-    displayVehicle.textContent = editVehicle.value;
+    // Save vehicle data first
+    const vehicleSaved = await saveVehicleData();
     
-    infoEdit.style.display = 'none';
-    infoView.style.display = 'block';
-    alert('Hồ sơ đã được cập nhật thành công!');
-    // TODO: Gọi API để lưu dữ liệu
+    if (vehicleSaved) {
+        displayName.textContent = editName.value;
+        displayEmail.textContent = editEmail.value;
+        displayPhone.textContent = editPhone.value;
+        
+        infoEdit.style.display = 'none';
+        infoView.style.display = 'block';
+        alert('Hồ sơ đã được cập nhật thành công!');
+    }
+    // TODO: Gọi API để lưu thông tin người dùng (name, email, phone)
 });

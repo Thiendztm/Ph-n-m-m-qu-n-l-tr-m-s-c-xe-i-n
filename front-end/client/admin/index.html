@@ -19,18 +19,20 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../src/img/user.png" alt="Admin" class="admin-avatar">
-                <span class="admin-name">Welcome, Admin</span>
+                <div class="admin-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <span class="admin-name" id="adminName">Welcome, Admin</span>
             </div>
             <ul class="sidebar-menu">
-                <li class="active"><a href="#"><i class="fa-solid fa-bolt"></i> Trạm sạc</a></li>
-                <li><a href="#"><i class="fa-solid fa-wrench"></i> Thiết bị</a></li>
-                <li><a href="#"><i class="fa-solid fa-users"></i> Người dùng</a></li>
-                <li><a href="#"><i class="fa-solid fa-wallet"></i> Tài khoản</a></li>
-                <li><a href="#"><i class="fa-solid fa-chart-bar"></i> Báo cáo</a></li>
-                <li><a href="#"><i class="fa-solid fa-money-bill-trend-up"></i> Doanh thu</a></li>
-                <li><a href="#"><i class="fa-solid fa-headset"></i> Hỗ trợ</a></li>
-                <li><a href="#"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
+                <li class="active" data-page="stations"><i class="fa-solid fa-bolt"></i> Trạm sạc</li>
+                <li data-page="devices"><i class="fa-solid fa-wrench"></i> Thiết bị</li>
+                <li data-page="users"><i class="fa-solid fa-users"></i> Người dùng</li>
+                <li data-page="accounts"><i class="fa-solid fa-wallet"></i> Tài khoản</li>
+                <li data-page="reports"><i class="fa-solid fa-chart-bar"></i> Báo cáo</li>
+                <li data-page="revenue"><i class="fa-solid fa-money-bill-trend-up"></i> Doanh thu</li>
+                <li data-page="support"><i class="fa-solid fa-headset"></i> Hỗ trợ</li>
+                <li data-page="logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</li>
             </ul>
         </aside>
 
@@ -44,6 +46,8 @@
     <script type="module" src="./js/api-client.js"></script>
     <script type="module" src="./js/data.js"></script>
     <script type="module" src="./js/utils.js"></script>
+    <script type="module" src="./js/stations-management.js"></script>
+    <script type="module" src="./js/users-management.js"></script>
     <script type="module" src="./js/stations.js"></script>
     <script type="module" src="./js/users.js"></script>
     <script type="module" src="./js/accounts.js"></script>

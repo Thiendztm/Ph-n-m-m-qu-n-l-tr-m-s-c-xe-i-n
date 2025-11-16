@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
 
 let currentPlan = 'usage';   // usage | once | monthly
 let hideEnergy = false;
@@ -20,7 +20,7 @@ paymentDetails.querySelector('.box__detail-items').prepend(planTitleEl);
 
 // === Wallet Balance Management - Integrated with Backend ===
 async function fetchWalletBalance() {
-    const token = localStorage.getItem('jwt_token');
+    const token = localStorage.getItem('accessToken'); // (đã sửa)
     if (!token) {
         console.error('No auth token found');
         return 0;
@@ -61,7 +61,7 @@ async function updateWalletDisplay() {
 
 // API call để thanh toán qua ví (trừ tiền và tạo transaction)
 async function processWalletPayment(amount, sessionId) {
-    const token = localStorage.getItem('jwt_token');
+    const token = localStorage.getItem('accessToken'); // (đã sửa)
     if (!token) {
         console.error('No auth token found');
         return { success: false, message: 'Vui lòng đăng nhập' };

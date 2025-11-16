@@ -3,7 +3,7 @@
 import api from './api-client.js';
 import { sessionManager, showNotification } from './data-flow.js';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
 
 let allSessions = [];
 let filteredSessions = [];
@@ -35,8 +35,12 @@ async function fetchChargingHistory() {
     try {
         const token = localStorage.getItem('accessToken');
         const userId = localStorage.getItem('userId');
-        
-        const response = await fetch(`${API_BASE_URL}/charging/history?userId=${userId}`, {
+
+        const endpoint = userId 
+            ? `${API_BASE_URL}/charging/history?userId=${encodeURIComponent(userId)}`
+            : `${API_BASE_URL}/charging/history`;
+
+        const response = await fetch(endpoint, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -54,7 +58,9 @@ async function fetchChargingHistory() {
         }
 
         const data = await response.json();
-        allSessions = data.sessions || generateMockData(); // Fallback to mock data for demo
+        // Accept either { sessions: [...] } or a raw array
+        const sessions = Array.isArray(data) ? data : (data.sessions || []);
+        allSessions = sessions;
         filteredSessions = [...allSessions];
         
         renderHistory();
@@ -62,41 +68,12 @@ async function fetchChargingHistory() {
         
     } catch (error) {
         console.error('Error fetching history:', error);
-        // Use mock data for demonstration
-        allSessions = generateMockData();
-        filteredSessions = [...allSessions];
+        // Show empty state on error
+        allSessions = [];
+        filteredSessions = [];
         renderHistory();
         updateStats();
     }
-}
-
-// Generate mock data for demonstration
-function generateMockData() {
-    const stations = ['Trạm Nguyễn Huệ', 'Trạm Lê Lợi', 'Trạm Trần Phú', 'Trạm Hai Bà Trưng'];
-    const mockSessions = [];
-    
-    for (let i = 0; i < 15; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-        
-        const energyConsumed = (Math.random() * 50 + 10).toFixed(2);
-        const costPerKwh = 3500;
-        const totalCost = (energyConsumed * costPerKwh).toFixed(0);
-        
-        mockSessions.push({
-            sessionId: `SESSION-${1000 + i}`,
-            stationName: stations[Math.floor(Math.random() * stations.length)],
-            startTime: date.toISOString(),
-            endTime: new Date(date.getTime() + (Math.random() * 3 + 1) * 3600000).toISOString(),
-            energyConsumed: parseFloat(energyConsumed),
-            totalCost: parseInt(totalCost),
-            startSoc: Math.floor(Math.random() * 30 + 10),
-            endSoc: Math.floor(Math.random() * 20 + 80),
-            status: Math.random() > 0.1 ? 'COMPLETED' : 'FAILED'
-        });
-    }
-    
-    return mockSessions.sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
 }
 
 // Render history list

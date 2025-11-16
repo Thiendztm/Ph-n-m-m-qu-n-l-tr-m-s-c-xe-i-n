@@ -1,7 +1,7 @@
 // ========== API CLIENT UTILITY ==========
 // Centralized API calling with JWT authentication
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
 
 // Get tokens from localStorage
 function getAccessToken() {
@@ -147,5 +147,10 @@ const api = {
   }
 };
 
+// fetchWithAuth alias for compatibility
+async function fetchWithAuth(endpoint, options = {}) {
+  return apiCall(endpoint, options);
+}
+
 // Export for ES6 modules
-export { api, setTokens, clearTokens, getAccessToken, API_BASE_URL };
+export { api, setTokens, clearTokens, getAccessToken, API_BASE_URL, fetchWithAuth };

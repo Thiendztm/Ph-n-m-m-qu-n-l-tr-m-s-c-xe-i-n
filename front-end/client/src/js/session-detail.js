@@ -1,9 +1,11 @@
 // Session Detail Script
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8080/api';
 
-// Get session ID from URL
+// Get session ID from URL or localStorage fallback
 const urlParams = new URLSearchParams(window.location.search);
-const sessionId = urlParams.get('id');
+let sessionId = urlParams.get('id') 
+    || localStorage.getItem('currentSessionId') 
+    || localStorage.getItem('currentBookingId');
 
 if (!sessionId) {
     window.location.href = './charging-history.html';
@@ -23,6 +25,10 @@ async function fetchSessionDetail() {
         });
 
         if (!response.ok) {
+            if (response.status === 404) {
+                showNotFoundError();
+                return;
+            }
             throw new Error('Failed to fetch session detail');
         }
 
@@ -31,40 +37,46 @@ async function fetchSessionDetail() {
         
     } catch (error) {
         console.error('Error:', error);
-        // Use mock data for demo
-        const mockSession = generateMockSession();
-        renderSessionDetail(mockSession);
+        showErrorState();
     }
 }
 
-// Generate mock session data
-function generateMockSession() {
-    const startDate = new Date();
-    startDate.setHours(startDate.getHours() - 2);
-    const endDate = new Date();
-    
-    return {
-        sessionId: sessionId || 'SESSION-1001',
-        stationName: 'Trạm Nguyễn Huệ',
-        stationAddress: '123 Nguyễn Huệ, Q1, TP.HCM',
-        startTime: startDate.toISOString(),
-        endTime: endDate.toISOString(),
-        startSoc: 25,
-        endSoc: 95,
-        energyConsumed: 45.5,
-        powerOutput: 50, // kW
-        costPerKwh: 3500,
-        totalCost: 159250,
-        paymentMethod: 'EV Wallet',
-        status: 'COMPLETED',
-        chargingCurve: [
-            { time: '00:00', power: 50, soc: 25 },
-            { time: '00:30', power: 48, soc: 45 },
-            { time: '01:00', power: 45, soc: 65 },
-            { time: '01:30', power: 35, soc: 85 },
-            { time: '02:00', power: 20, soc: 95 }
-        ]
-    };
+// Show error state when session not found
+function showNotFoundError() {
+    document.getElementById('sessionDetail').innerHTML = `
+        <div class="session-card">
+            <div class="card-body" style="text-align: center; padding: 48px 24px;">
+                <i class="fas fa-exclamation-circle" style="font-size: 64px; color: #ff6b6b; margin-bottom: 16px;"></i>
+                <h2 style="margin-bottom: 8px;">Không tìm thấy phiên sạc</h2>
+                <p style="opacity: 0.7; margin-bottom: 24px;">Phiên sạc này không tồn tại hoặc đã bị xóa</p>
+                <button class="btn btn-primary" onclick="window.location.href='./charging-history.html'">
+                    <i class="fas fa-arrow-left"></i>
+                    Quay lại lịch sử
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Show error state when API fails
+function showErrorState() {
+    document.getElementById('sessionDetail').innerHTML = `
+        <div class="session-card">
+            <div class="card-body" style="text-align: center; padding: 48px 24px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 64px; color: #ffa500; margin-bottom: 16px;"></i>
+                <h2 style="margin-bottom: 8px;">Lỗi tải dữ liệu</h2>
+                <p style="opacity: 0.7; margin-bottom: 24px;">Có lỗi xảy ra khi tải thông tin phiên sạc</p>
+                <button class="btn btn-primary" onclick="fetchSessionDetail()">
+                    <i class="fas fa-sync-alt"></i>
+                    Thử lại
+                </button>
+                <button class="btn btn-outline" onclick="window.location.href='./charging-history.html'" style="margin-left: 12px;">
+                    <i class="fas fa-arrow-left"></i>
+                    Quay lại
+                </button>
+            </div>
+        </div>
+    `;
 }
 
 // Render session detail

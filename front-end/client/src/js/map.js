@@ -713,10 +713,23 @@ async function submitBooking(stationId) {
 
         if (response.ok && data.success) {
             closeBookingModal();
-            alert('Đặt chỗ thành công! Bạn có thể xem chi tiết trong mục Lịch sử.');
-            
-            const stations = await loadStationsFromAPI();
-            updateStationList();
+            // Lưu thông tin đặt chỗ để trang Thanh toán đọc (đã sửa)
+            const bookingStation = {
+                id: stationId,
+                name: (markers.find(m => String(m.station.id) === String(stationId))?.station.name) || '',
+                connectorDisplay: (markers.find(m => String(m.station.id) === String(stationId))?.station.connector) || '',
+                priceDisplay: `${(markers.find(m => String(m.station.id) === String(stationId))?.station.price || 0).toLocaleString('vi-VN')}đ/kWh`,
+                price: (markers.find(m => String(m.station.id) === String(stationId))?.station.price) || 0
+            };
+            localStorage.setItem('bookingStation', JSON.stringify(bookingStation));
+            // Nếu backend trả về sessionId/bookingId thì lưu lại
+            if (data.sessionId) {
+                localStorage.setItem('currentSessionId', String(data.sessionId));
+            } else if (data.bookingId) {
+                localStorage.setItem('currentBookingId', String(data.bookingId));
+            }
+            // Điều hướng sang trang thanh toán
+            window.location.href = 'payment.html';
         } else {
             document.getElementById('bookingError').style.display = 'block';
             document.getElementById('bookingError').textContent = (data && (data.message || data.error)) || 'Không thể đặt chỗ. Vui lòng thử lại.';
