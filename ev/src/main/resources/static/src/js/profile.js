@@ -43,7 +43,7 @@ async function fetchAndUpdateWalletBalance() {
     } catch (error) {
         console.error('Error fetching wallet balance:', error);
     }
-    
+
     // Fallback to localStorage
     return parseFloat(localStorage.getItem('walletBalance') || '0');
 }
@@ -51,7 +51,7 @@ async function fetchAndUpdateWalletBalance() {
 function updateProfileWalletDisplay(balance) {
     if (profileWalletBalance) {
         profileWalletBalance.textContent = balance.toLocaleString('vi-VN') + 'đ';
-        
+
         // Add color coding based on balance
         if (balance >= 1000000) {
             profileWalletBalance.style.color = '#28a745'; // Green for good balance
@@ -85,11 +85,24 @@ async function displayProfile() {
             const data = await response.json();
             console.log('Profile data received:', data);
 
-            // Update form fields
-            if (data.hoTen) document.getElementById('hoTen').value = data.hoTen;
-            if (data.email) document.getElementById('email').value = data.email;
-            if (data.sdt) document.getElementById('sdt').value = data.sdt;
-            if (data.diaChi) document.getElementById('diaChi').value = data.diaChi;
+            // Lấy thông tin người dùng từ response (ưu tiên alias hoTen/email/sdt)
+            const user = data.user || {};
+            const nameFromAlias = data.hoTen;
+            const nameFromUser = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+            const finalName = nameFromAlias || nameFromUser || 'Người dùng';
+
+            const finalEmail = data.email || user.email || '';
+            const finalPhone = data.sdt || user.phone || '';
+
+            // Cập nhật khu vực hiển thị
+            if (displayName) displayName.textContent = finalName;
+            if (displayEmail) displayEmail.textContent = finalEmail || 'Chưa cập nhật';
+            if (displayPhone) displayPhone.textContent = finalPhone || 'Chưa cập nhật';
+
+            // Đồng bộ giá trị ban đầu cho form edit
+            if (editName) editName.value = finalName;
+            if (editEmail) editEmail.value = finalEmail;
+            if (editPhone) editPhone.value = finalPhone;
 
             // Fetch and update wallet balance separately
             const balance = await fetchAndUpdateWalletBalance();
@@ -178,7 +191,7 @@ async function saveVehicleData() {
         if (response.ok) {
             const result = await response.json();
             console.log('Vehicle data saved:', result);
-            
+
             // Update display with formatted string
             const vehicleInfo = [];
             if (vehicleData.licensePlate) vehicleInfo.push(vehicleData.licensePlate);
@@ -223,7 +236,7 @@ editAvatar.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             previewImg.src = e.target.result;
             avatarImg.src = e.target.result; // Cập nhật ảnh ngay khi chọn
         };
@@ -234,15 +247,15 @@ editAvatar.addEventListener('change', (e) => {
 // Save changes
 editProfileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     // Save vehicle data first
     const vehicleSaved = await saveVehicleData();
-    
+
     if (vehicleSaved) {
         displayName.textContent = editName.value;
         displayEmail.textContent = editEmail.value;
         displayPhone.textContent = editPhone.value;
-        
+
         infoEdit.style.display = 'none';
         infoView.style.display = 'block';
         alert('Hồ sơ đã được cập nhật thành công!');

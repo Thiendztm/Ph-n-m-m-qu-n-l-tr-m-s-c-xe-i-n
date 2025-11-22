@@ -53,7 +53,7 @@ public class AdminController {
 
             if (status != null && !status.isEmpty()) {
                 StationStatus stationStatus = StationStatus.valueOf(status.toUpperCase());
-                stations = tramSacRepository.findByStatus(stationStatus);
+                stations = tramSacRepository.findByStatus(stationStatus.name());
             } else {
                 stations = adminService.getAllStations();
             }
@@ -369,11 +369,11 @@ public class AdminController {
         try {
             // Đếm stations theo status
             long totalStations = tramSacRepository.count();
-            long onlineStations = tramSacRepository.findByStatus(StationStatus.ONLINE).size();
-            long offlineStations = tramSacRepository.findByStatus(StationStatus.OFFLINE).size();
+            long onlineStations = tramSacRepository.findByStatus(StationStatus.ONLINE.name()).size();
+            long offlineStations = tramSacRepository.findByStatus(StationStatus.OFFLINE.name()).size();
             // Lỗi 5. Đã sửa: Đếm trạm đang bảo trì (giả định StationStatus.MAINTENANCE tồn
             // tại)
-            long maintenanceStations = tramSacRepository.findByStatus(StationStatus.MAINTENANCE).size();
+            long maintenanceStations = tramSacRepository.findByStatus(StationStatus.MAINTENANCE.name()).size();
 
             // Đếm chargers theo status
             long totalChargers = chargerRepository.count();

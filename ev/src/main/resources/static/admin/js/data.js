@@ -15,8 +15,9 @@ export const state = {
 export async function fetchStations() {
   try {
     state.loading = true;
-    const stations = await api.get('/admin/stations');
-    state.stations = stations.map(s => ({
+    const response = await api.get('/admin/stations');
+    const stations = response.stations || response; // Handle both {stations: []} and []
+    state.stations = (Array.isArray(stations) ? stations : []).map(s => ({
       id: s.id,
       name: s.name,
       lat: s.latitude,
@@ -48,18 +49,20 @@ export async function fetchStations() {
 export async function fetchUsers() {
   try {
     state.loading = true;
-    const users = await api.get('/admin/users?role=EV_DRIVER');
-    state.users = users.map(u => ({
+    const response = await api.get('/admin/users?role=EV_DRIVER');
+    const users = response.users || response; // Handle both formats
+    state.users = (Array.isArray(users) ? users : []).map(u => ({
       id: u.id,
-      name: u.fullName || u.email,
+      name: (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}` : u.email,
       email: u.email,
-      phone: u.phoneNumber || '--',
-      status: u.active ? 'active' : 'inactive',
+      phone: u.phone || '--',
+      status: 'active', // Backend doesn't have active field, assume all are active
       joinDate: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : '--',
       totalCharges: 0, // TODO: Get from charging history
       totalSpent: 0, // TODO: Get from payment history
       vehicleId: '--',
-      vehicleType: '--'
+      vehicleType: '--',
+      role: u.role
     }));
     state.loading = false;
     return state.users;
@@ -76,13 +79,14 @@ export async function fetchAccounts() {
   try {
     state.loading = true;
     // Get all users and their wallet info
-    const users = await api.get('/admin/users?role=EV_DRIVER');
-    state.accounts = users.map(u => ({
+    const response = await api.get('/admin/users?role=EV_DRIVER');
+    const users = response.users || response;
+    state.accounts = (Array.isArray(users) ? users : []).map(u => ({
       id: `ACC${u.id}`,
       userId: u.id,
-      userName: u.fullName || u.email,
+      userName: (u.firstName && u.lastName) ? `${u.firstName} ${u.lastName}` : u.email,
       balance: u.walletBalance || 0,
-      status: u.active ? 'active' : 'frozen',
+      status: 'active', // Backend doesn't have active field
       lastTransaction: '--' // TODO: Get from payment history
     }));
     state.loading = false;
@@ -99,7 +103,7 @@ export async function fetchAccounts() {
 export async function fetchReports() {
   try {
     state.loading = true;
-    const overview = await api.get('/admin/statistics/overview');
+    const overview = await api.get('/admin/overview');
     state.reports = {
       dailyRevenue: overview.dailyRevenue || 0,
       monthlyRevenue: overview.monthlyRevenue || 0,

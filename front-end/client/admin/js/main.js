@@ -8,6 +8,7 @@ import { renderUsersPage } from './users.js';
 import { renderAccountsPage } from './accounts.js';
 import { renderRevenuePage } from './revenue.js';
 import { renderSupportPage } from './support.js';
+import { renderStaffManagementPage } from './staff-management.js';
 
 export function renderPage() {
   const mainContent = document.querySelector('.main-content');
@@ -22,6 +23,9 @@ export function renderPage() {
       break;
     case 'users':
       initUsersManagement(); 
+      break;
+    case 'staff':
+      renderStaffManagementPage(); 
       break;
     case 'accounts':
       renderAccountsPage(); 

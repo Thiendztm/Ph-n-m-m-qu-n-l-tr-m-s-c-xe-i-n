@@ -85,11 +85,24 @@ async function displayProfile() {
             const data = await response.json();
             console.log('Profile data received:', data);
 
-            // Update form fields
-            if (data.hoTen) document.getElementById('hoTen').value = data.hoTen;
-            if (data.email) document.getElementById('email').value = data.email;
-            if (data.sdt) document.getElementById('sdt').value = data.sdt;
-            if (data.diaChi) document.getElementById('diaChi').value = data.diaChi;
+            // Lấy thông tin người dùng từ response (ưu tiên alias hoTen/email/sdt)
+            const user = data.user || {};
+            const nameFromAlias = data.hoTen;
+            const nameFromUser = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+            const finalName = nameFromAlias || nameFromUser || 'Người dùng';
+
+            const finalEmail = data.email || user.email || '';
+            const finalPhone = data.sdt || user.phone || '';
+
+            // Cập nhật khu vực hiển thị
+            if (displayName) displayName.textContent = finalName;
+            if (displayEmail) displayEmail.textContent = finalEmail || 'Chưa cập nhật';
+            if (displayPhone) displayPhone.textContent = finalPhone || 'Chưa cập nhật';
+
+            // Đồng bộ giá trị ban đầu cho form edit
+            if (editName) editName.value = finalName;
+            if (editEmail) editEmail.value = finalEmail;
+            if (editPhone) editPhone.value = finalPhone;
 
             // Fetch and update wallet balance separately
             const balance = await fetchAndUpdateWalletBalance();
